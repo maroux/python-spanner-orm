@@ -8,7 +8,7 @@ This is a lightweight ORM written in Python and built on top of Cloud Spanner.
 
 Make sure that Python 3.7 is the default version of python for your environment,
 then run:
-```pip install git+https://github.com/google/python-spanner-orm#egg=spanner_orm```
+```pip install spanner-orm```
 
 ### Connecting
 To connect the Spanner ORM to an existing Spanner database:
