@@ -14,7 +14,7 @@
 # limitations under the License.
 """Represents an index on a Model."""
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 
 from spanner_orm import error
 
@@ -30,7 +30,7 @@ class Index(object):
                unique: bool = False,
                storing_columns: Optional[List[str]] = None,
                name: Optional[str] = None,
-               column_ordering: Dict[str, bool] = None,
+               column_ordering: Union[Dict[str, bool], bool] = None,
                ):
     """
     Represents an index on the table
@@ -43,10 +43,14 @@ class Index(object):
       accessed together
     :param name: Name of the index (this may be used to customize default index name)
     :param column_ordering: Map of column names to bool (True for ASC, and False for DESC) indicating order for the
-      field (defaults to ASC)
+      field (defaults to ASC). For single column indexes, this can be a single bool value as well.
     """
     if not columns:
       raise error.ValidationError('An index must have at least one column')
+    if isinstance(column_ordering, bool):
+      if len(columns) != 1:
+        raise error.ValidationError('column_ordering can be set to a bool only if single-column index')
+      column_ordering = {columns[0]: column_ordering}
     self._columns = columns
     self._name = name
     self._parent = parent
