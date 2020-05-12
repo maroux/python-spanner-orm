@@ -15,7 +15,7 @@
 """Used with SpannerAdminApi to manage Spanner schema updates."""
 
 import abc
-from typing import Iterable, List, Optional, Type
+from typing import Iterable, List, Optional, Type, Dict
 
 from spanner_orm import condition
 from spanner_orm import error
@@ -237,10 +237,11 @@ class CreateIndex(SchemaUpdate):
                interleaved: Optional[str] = None,
                storing_columns: Optional[Iterable[str]] = None,
                unique: Optional[bool] = None,
-               null_filtered: Optional[bool] = None):
+               null_filtered: Optional[bool] = None,
+               column_ordering: Optional[Dict[str, bool]] = None):
     if not ((model_index is not None) ^ (index_name is not None and columns is not None)):
       raise error.SpannerError('Exactly one of: [model_index], [index_name, columns] is required')
-    if model_index and (index_name or columns or interleaved or storing_columns or unique or null_filtered):
+    if model_index and (index_name or columns or interleaved or storing_columns or unique or null_filtered or column_ordering):
       raise error.SpannerError('Can not specify any other optional param if model_index is specified')
 
     if model_index:
@@ -250,6 +251,9 @@ class CreateIndex(SchemaUpdate):
       storing_columns = model_index.storing_columns
       unique = model_index.unique
       null_filtered = model_index.null_filtered
+      column_ordering = model_index.column_ordering
+    elif not column_ordering:
+      column_ordering = {}
 
     self._table = table_name
     self._index = index_name
@@ -258,12 +262,14 @@ class CreateIndex(SchemaUpdate):
     self._storing_columns = storing_columns or []
     self._unique = unique
     self._null_filtered = null_filtered
+    self._column_ordering = column_ordering
 
   def ddl(self) -> str:
+    columns_with_ordering = (f'{col}{"" if self._column_ordering.get(col, True) else " DESC"}' for col in self._columns)
     statement = 'CREATE {}{}INDEX {} ON {} ({})'.format(
       'UNIQUE ' if self._unique else '',
       'NULL_FILTERED ' if self._null_filtered else '',
-      self._index, self._table, ', '.join(self._columns))
+      self._index, self._table, ', '.join(columns_with_ordering))
     if self._storing_columns:
       statement += 'STORING ({})'.format(', '.join(self._storing_columns))
     if self._parent_table:

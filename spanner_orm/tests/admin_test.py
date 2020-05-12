@@ -166,11 +166,12 @@ class AdminTest(unittest.TestCase):
       expected_ddl = [
           'CREATE TABLE IndexTestModel (key STRING(MAX) NOT NULL,'
           ' value STRING(MAX) NOT NULL) PRIMARY KEY (key)',
-          'CREATE INDEX value ON IndexTestModel (value)'
+          'CREATE INDEX value ON IndexTestModel (value)',
+          'CREATE INDEX value_desc ON IndexTestModel (value DESC)'
       ]
       ddl = update.model_creation_ddl(models.IndexTestModel)
       self.assertEqual(ddl, expected_ddl)
-      self.assertCountEqual(models.IndexTestModel.meta.indexes.keys(), ['PRIMARY_KEY', 'value_idx'])
+      self.assertCountEqual(models.IndexTestModel.meta.indexes.keys(), ['PRIMARY_KEY', 'value_idx', 'value_idx2'])
 
   def test_model_creation_ddl2(self):
       expected_ddl = [

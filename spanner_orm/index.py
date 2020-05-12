@@ -14,7 +14,7 @@
 # limitations under the License.
 """Represents an index on a Model."""
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from spanner_orm import error
 
@@ -29,7 +29,22 @@ class Index(object):
                null_filtered: bool = False,
                unique: bool = False,
                storing_columns: Optional[List[str]] = None,
-               name: Optional[str] = None):
+               name: Optional[str] = None,
+               column_ordering: Dict[str, bool] = None,
+               ):
+    """
+    Represents an index on the table
+
+    :param columns: List of columns in the index
+    :param parent:
+    :param null_filtered: Should null values be filtered?
+    :param unique: Enforce unique constraint?
+    :param storing_columns: Additional columns to store with this index. This can help performance if fields are
+      accessed together
+    :param name: Name of the index (this may be used to customize default index name)
+    :param column_ordering: Map of column names to bool (True for ASC, and False for DESC) indicating order for the
+      field (defaults to ASC)
+    """
     if not columns:
       raise error.ValidationError('An index must have at least one column')
     self._columns = columns
@@ -38,6 +53,7 @@ class Index(object):
     self._null_filtered = null_filtered
     self._unique = unique
     self._storing_columns = storing_columns or []
+    self._column_ordering = column_ordering or {}
 
   @property
   def columns(self) -> List[str]:
@@ -67,6 +83,13 @@ class Index(object):
   @property
   def storing_columns(self) -> List[str]:
     return self._storing_columns
+
+  @property
+  def column_ordering(self) -> Dict[str, bool]:
+    """
+    Map of column name to order (True for ascending, False for descending)
+    """
+    return self._column_ordering
 
   @property
   def primary(self) -> bool:

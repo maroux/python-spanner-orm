@@ -47,6 +47,7 @@ class IndexTestModel(model.Model):
   value = field.Field(field.String)
 
   value_idx = index.Index(['value'], name='value')
+  value_idx2 = index.Index(['value'], name='value_desc', column_ordering={'value': False})
 
 
 class FieldCustomNameTestModel(model.Model):
