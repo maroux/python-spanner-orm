@@ -19,6 +19,8 @@ import unittest
 from unittest import mock
 
 from absl.testing import parameterized
+from google.cloud.spanner_v1 import COMMIT_TIMESTAMP
+
 from spanner_orm import field
 from spanner_orm.tests import models
 
@@ -66,6 +68,7 @@ class ModelTest(parameterized.TestCase):
     all_data = primary_key.copy()
     all_data.update({
         'timestamp': datetime.datetime.now(tz=datetime.timezone.utc),
+        'timestamp_2': COMMIT_TIMESTAMP,
         'string_array': ['foo', 'bar']
     })
     test_model = models.UnittestModel(all_data)

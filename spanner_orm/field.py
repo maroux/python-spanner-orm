@@ -20,6 +20,7 @@ from typing import Any, Type, Optional
 
 from spanner_orm import error
 
+from google.cloud.spanner_v1 import COMMIT_TIMESTAMP
 from google.cloud.spanner_v1.proto import type_pb2
 
 
@@ -99,6 +100,8 @@ class Field(object):
     if value is None:
       if not self._nullable:
         raise error.ValidationError('None set for non-nullable field')
+    elif self._allow_commit_timestamp and value == COMMIT_TIMESTAMP:
+      return
     else:
       self._type.validate_type(value)
 
