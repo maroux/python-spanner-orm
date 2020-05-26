@@ -544,8 +544,8 @@ class Model(ModelApi):
     else:
       self.spanner_api().run_write(db_api, *args)
 
-  def id(self) -> Dict[str, Any]:
-    """Gets the identifier of this object.
+  def pkey(self) -> Dict[str, Any]:
+    """Gets the primary key of this object.
 
     Returns:
       Dictionary mapping from primary key attribute name to values. Note: this
@@ -568,7 +568,7 @@ class Model(ModelApi):
       in Spanner, or None if no information was found (object was deleted or
       never was persisted)
     """
-    updated_object = self._metaclass.find(transaction, **self.id())
+    updated_object = self._metaclass.find(transaction, **self.pkey())
     if updated_object is None:
       return None
     start_values = {}
@@ -601,7 +601,7 @@ class Model(ModelApi):
     if self._persisted:
       changed_values = self.changes()
       if changed_values:
-        changed_values.update(self.id())
+        changed_values.update(self.pkey())
         self._metaclass.update(transaction, **changed_values)
     else:
       self._metaclass.create(transaction, **self.values)

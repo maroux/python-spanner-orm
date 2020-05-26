@@ -72,7 +72,7 @@ class ModelTest(parameterized.TestCase):
         'string_array': ['foo', 'bar']
     })
     test_model = models.UnittestModel(all_data)
-    self.assertEqual(test_model.id(), primary_key)
+    self.assertEqual(test_model.pkey(), primary_key)
 
   def test_changes(self):
     test_model = models.SmallTestModel({'key': 'key', 'value_1': 'value'})
@@ -141,7 +141,7 @@ class ModelTest(parameterized.TestCase):
     find.assert_called_once()
     (transaction,), kwargs = find.call_args
     self.assertIsNone(transaction)
-    self.assertEqual(kwargs, model.id())
+    self.assertEqual(kwargs, model.pkey())
 
   @mock.patch('spanner_orm.model.ModelApi.find')
   def test_reload_reloads(self, find):
