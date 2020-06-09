@@ -169,10 +169,6 @@ class ForceIndexCondition(Condition):
       self.name = index_or_name
       self.index = None
 
-  def bind(self, model_class: Type[Any]) -> None:
-    super().bind(model_class)
-    self.index = self.model_class.indexes[self.name]
-
   def _params(self) -> Dict[str, Any]:
     return {}
 
@@ -186,15 +182,15 @@ class ForceIndexCondition(Condition):
     return {}
 
   def _validate(self, model_class: Type[Any]) -> None:
-    if self.name not in model_class.indexes:
+    for idx in model_class.indexes.values():
+      if idx.name == self.name and (self.index is None or self.index == idx):
+        if idx.primary:
+          raise error.ValidationError('Cannot force query using primary index')
+        self.index = idx
+        break
+    else:
       raise error.ValidationError('{} is not an index on {}'.format(
           self.name, model_class.table))
-    if self.index and self.index != model_class.indexes[self.name]:
-      raise error.ValidationError('{} does not belong to {}'.format(
-          self.index.name, model_class.table))
-
-    if model_class.indexes[self.name].primary:
-      raise error.ValidationError('Cannot force query using primary index')
 
 
 class IncludesCondition(Condition):
