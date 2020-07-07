@@ -51,7 +51,8 @@ def find(transaction: spanner_transaction.Transaction, table_name: str,
 
 def sql_query(transaction: spanner_transaction.Transaction, query: str,
               parameters: Dict[str, Any],
-              parameter_types: Dict[str, type_pb2.Type]) -> List[Iterable[Any]]:
+              parameter_types: Dict[str, type_pb2.Type],
+              **kwargs) -> List[Iterable[Any]]:
   """Executes a given SQL query against the Spanner database.
 
   This isn't technically read-only, but it's necessary to implement the read-
@@ -64,6 +65,7 @@ def sql_query(transaction: spanner_transaction.Transaction, query: str,
       to the value to be substituted in for that parameter
     parameter_types: A mapping from the names of the parameters used in the SQL
       query to the type of the value being substituted in for that parameter
+    kwargs: Additional keyword args to pass to `transaction.execute_sql`
 
   Returns:
     A list of lists. Each sublist is a result row from the SQL query. For
@@ -73,7 +75,7 @@ def sql_query(transaction: spanner_transaction.Transaction, query: str,
   _logger.debug('Executing SQL:\n%s\n%s\n%s', query, parameters,
                 parameter_types)
   stream_results = transaction.execute_sql(
-      query, params=parameters, param_types=parameter_types)
+      query, params=parameters, param_types=parameter_types, **kwargs)
   return list(stream_results)
 
 
