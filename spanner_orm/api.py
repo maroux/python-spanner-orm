@@ -19,6 +19,8 @@ from typing import Any, Callable, Iterable, Optional, TypeVar
 
 from spanner_orm import error
 
+import google.api_core.gapic_v1.method
+from google.api_core.gapic_v1.client_info import ClientInfo
 from google.auth import credentials as auth_credentials
 from google.cloud import spanner
 from google.cloud.spanner_v1 import database as spanner_database
@@ -92,9 +94,20 @@ class SpannerConnection:
                project: Optional[str] = None,
                credentials: Optional[auth_credentials.Credentials] = None,
                pool: Optional[spanner_pool.AbstractSessionPool] = None,
-               create_ddl: Optional[Iterable[str]] = None):
+               create_ddl: Optional[Iterable[str]] = None,
+               client_info: Optional[ClientInfo] = None,
+               client_options = None,
+               query_options = None):
     """Connects to the specified Spanner database."""
-    client = spanner.Client(project=project, credentials=credentials)
+    params = dict(
+      project=project,
+      credentials=credentials,
+      client_options=client_options,
+      query_options=query_options,
+    )
+    if client_info is not None:
+      params["client_info"] = client_info
+    client = spanner.Client(**params)
     instance = client.instance(instance)
     self.database = instance.database(
         database, pool=pool, ddl_statements=create_ddl or ())
@@ -126,10 +139,13 @@ def connect(instance: str,
   return from_connection(connection)
 
 
-def from_connection(connection: SpannerConnection) -> SpannerApi:
-  """Sets the global spanner_api from the provided connection."""
+def from_connection(connection: SpannerConnection, **kwargs) -> SpannerApi:
+  """
+  Sets the global spanner_api from the provided connection.
+  :param kwargs: Additional keyword args to pass to SpannerApi class
+  """
   global _api
-  _api = SpannerApi(connection)
+  _api = SpannerApi(connection, **kwargs)
   return _api
 
 
