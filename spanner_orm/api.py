@@ -19,6 +19,8 @@ from typing import Any, Callable, Iterable, Optional, TypeVar
 
 from spanner_orm import error
 
+import google.api_core.gapic_v1.method
+from google.api_core.gapic_v1.client_info import ClientInfo
 from google.auth import credentials as auth_credentials
 from google.cloud import spanner
 from google.cloud.spanner_v1 import database as spanner_database
@@ -92,9 +94,20 @@ class SpannerConnection:
                project: Optional[str] = None,
                credentials: Optional[auth_credentials.Credentials] = None,
                pool: Optional[spanner_pool.AbstractSessionPool] = None,
-               create_ddl: Optional[Iterable[str]] = None):
+               create_ddl: Optional[Iterable[str]] = None,
+               client_info: Optional[ClientInfo] = None,
+               client_options = None,
+               query_options = None):
     """Connects to the specified Spanner database."""
-    client = spanner.Client(project=project, credentials=credentials)
+    params = dict(
+      project=project,
+      credentials=credentials,
+      client_options=client_options,
+      query_options=query_options,
+    )
+    if client_info is not None:
+      params["client_info"] = client_info
+    client = spanner.Client(**params)
     instance = client.instance(instance)
     self.database = instance.database(
         database, pool=pool, ddl_statements=create_ddl or ())
@@ -103,8 +116,25 @@ class SpannerConnection:
 class SpannerApi(SpannerReadApi, SpannerWriteApi):
   """Class that handles reading from and writing to Spanner tables."""
 
-  def __init__(self, connection: SpannerConnection):
+  def __init__(self, connection: SpannerConnection,
+               retry=google.api_core.gapic_v1.method.DEFAULT,
+               timeout=google.api_core.gapic_v1.method.DEFAULT,
+               ):
+    """
+    :param connection:
+    :param retry: If specified, this is set as the default value for retries in all read-only queries
+    :param timeout: If specified, this is set as the default value for timeout in all read-only queries. However,
+      to actually change timeout, you need to modify the retry parameter.
+    """
     self._spanner_connection = connection
+    self._retry = retry
+    self._timeout = timeout
+
+  def run_read_only(self, method: Callable[..., CallableReturn], *args: Any,
+                    **kwargs: Any) -> CallableReturn:
+    kwargs.setdefault("retry", self._retry)
+    kwargs.setdefault("timeout", self._timeout)
+    return super().run_read_only(method, *args, **kwargs)
 
   @property
   def _connection(self):
@@ -126,10 +156,13 @@ def connect(instance: str,
   return from_connection(connection)
 
 
-def from_connection(connection: SpannerConnection) -> SpannerApi:
-  """Sets the global spanner_api from the provided connection."""
+def from_connection(connection: SpannerConnection, **kwargs) -> SpannerApi:
+  """
+  Sets the global spanner_api from the provided connection.
+  :param kwargs: Additional keyword args to pass to SpannerApi class
+  """
   global _api
-  _api = SpannerApi(connection)
+  _api = SpannerApi(connection, **kwargs)
   return _api
 
 
