@@ -45,6 +45,12 @@ class TestModel(spanner_orm.Model):
   value = spanner_orm.Field(spanner_orm.Integer, nullable=True)
   number = spanner_orm.Field(spanner_orm.Float, nullable=True)
 
+  # You can specify the size of a string or strings inside an array
+  # Note:
+  # - Size can only be used on `spanner_orm.String` or `spanner_orm.StringArray`
+  # - If size is not specified, it will default to MAX
+  name = spanner_orm.Field(spanner_orm.String, nullable=True, size=10)
+
   # Secondary indexes are specified in a similar manner to fields:
   value_index = spanner_orm.Index(['value'])
 
