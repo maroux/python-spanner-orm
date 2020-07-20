@@ -65,8 +65,13 @@ Float = field.Float
 Index = index.Index
 Relationship = relationship.Relationship
 String = field.String
-StringArray = field.StringArray
+Date = field.Date
 Timestamp = field.Timestamp
+StringArray = field.StringArray
+BoolArray = field.BoolArray
+IntegerArray = field.IntegerArray
+FloatArray = field.FloatArray
+DateArray = field.DateArray
 
 equal_to = condition.equal_to
 force_index = condition.force_index
