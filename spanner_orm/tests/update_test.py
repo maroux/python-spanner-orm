@@ -71,6 +71,11 @@ class UpdateTest(unittest.TestCase):
                       ' string STRING(MAX) NOT NULL, string_2 STRING(MAX),'
                       ' timestamp TIMESTAMP NOT NULL,'
                       ' timestamp_2 TIMESTAMP OPTIONS (allow_commit_timestamp=true),'
+                      ' date DATE,'
+                      ' bool_array ARRAY<BOOL>,'
+                      ' int_array ARRAY<INT64>,'
+                      ' float_array ARRAY<FLOAT64>,'
+                      ' date_array ARRAY<DATE>,'
                       ' string_array ARRAY<STRING(MAX)>) PRIMARY KEY (int_, float_, string)')
     self.assertEqual(test_update.ddl(), test_model_ddl)
 

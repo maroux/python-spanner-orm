@@ -86,6 +86,11 @@ class UnittestModel(model.Model):
   string_2 = field.Field(field.String, nullable=True)
   timestamp = field.Field(field.Timestamp)
   timestamp_2 = field.Field(field.Timestamp, nullable=True, allow_commit_timestamp=True)
+  date = field.Field(field.Date, nullable=True)
+  bool_array = field.Field(field.BoolArray, nullable=True)
+  int_array = field.Field(field.IntegerArray, nullable=True)
+  float_array = field.Field(field.FloatArray, nullable=True)
+  date_array = field.Field(field.DateArray, nullable=True)
   string_array = field.Field(field.StringArray, nullable=True)
 
   test_index = index.Index(['string_2'])
