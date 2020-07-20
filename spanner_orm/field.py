@@ -51,8 +51,10 @@ class Field(object):
                nullable: bool = False,
                primary_key: bool = False,
                allow_commit_timestamp: bool = False,
-               name: Optional[str] = None):
+               name: Optional[str] = None,
+               size: Optional[int] = None):
     self._name = name
+    self._size = size
     self._type = field_type
     self._nullable = nullable
     self._primary_key = primary_key
@@ -70,7 +72,11 @@ class Field(object):
       options = ' OPTIONS (allow_commit_timestamp=true)'
     else:
       options = ''
-    return '{field_type}{nullable}{options}'.format(field_type=self._type.ddl(), nullable=nullable, options=options)
+    if self._size is None:
+      field_type = self._type.ddl()
+    else:
+      field_type = self._type.ddl(self._size)
+    return '{field_type}{nullable}{options}'.format(field_type=field_type, nullable=nullable, options=options)
 
   @property
   def field_type(self) -> Type[FieldType]:
@@ -161,8 +167,8 @@ class String(FieldType):
   """Represents a string type."""
 
   @staticmethod
-  def ddl() -> str:
-    return 'STRING(MAX)'
+  def ddl(size="MAX") -> str:
+    return 'STRING({size})'.format(size=size)
 
   @staticmethod
   def grpc_type() -> type_pb2.Type:
@@ -197,8 +203,8 @@ class StringArray(FieldType):
   """Represents an array of strings type."""
 
   @staticmethod
-  def ddl() -> str:
-    return 'ARRAY<STRING(MAX)>'
+  def ddl(size="MAX") -> str:
+    return 'ARRAY<STRING({size})>'.format(size=size)
 
   @staticmethod
   def grpc_type() -> type_pb2.Type:
