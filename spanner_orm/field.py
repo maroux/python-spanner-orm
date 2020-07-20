@@ -174,6 +174,25 @@ class String(FieldType):
       raise error.ValidationError('{} is not of type str'.format(value))
 
 
+class Date(FieldType):
+  """Represents a date type."""
+
+  @staticmethod
+  def ddl() -> str:
+    return 'DATE'
+
+  @staticmethod
+  def grpc_type() -> type_pb2.Type:
+    return type_pb2.Type(code=type_pb2.DATE)
+
+  @staticmethod
+  def validate_type(value) -> None:
+    try:
+      datetime.datetime.strptime(value, "%Y-%m-%d")
+    except:
+      raise error.ValidationError('{} is not of type date (YYYY-[M]M-[D]D)'.format(value))
+
+
 class StringArray(FieldType):
   """Represents an array of strings type."""
 
@@ -194,6 +213,88 @@ class StringArray(FieldType):
         raise error.ValidationError('{} is not of type str'.format(item))
 
 
+class BoolArray(FieldType):
+  """Represents an array of booleans type."""
+
+  @staticmethod
+  def ddl() -> str:
+    return 'ARRAY<BOOL>'
+
+  @staticmethod
+  def grpc_type() -> type_pb2.Type:
+    return type_pb2.Type(code=type_pb2.ARRAY)
+
+  @staticmethod
+  def validate_type(value: Any) -> None:
+    if not isinstance(value, list):
+      raise error.ValidationError('{} is not of type list'.format(value))
+    for item in value:
+      if not isinstance(item, bool):
+        raise error.ValidationError('{} is not of type bool'.format(item))
+
+
+class IntegerArray(FieldType):
+  """Represents an array of integers type."""
+
+  @staticmethod
+  def ddl() -> str:
+    return 'ARRAY<INT64>'
+
+  @staticmethod
+  def grpc_type() -> type_pb2.Type:
+    return type_pb2.Type(code=type_pb2.ARRAY)
+
+  @staticmethod
+  def validate_type(value: Any) -> None:
+    if not isinstance(value, list):
+      raise error.ValidationError('{} is not of type list'.format(value))
+    for item in value:
+      if not isinstance(item, int):
+        raise error.ValidationError('{} is not of type int'.format(item))
+
+
+class FloatArray(FieldType):
+  """Represents an array of floats type."""
+
+  @staticmethod
+  def ddl() -> str:
+    return 'ARRAY<FLOAT64>'
+
+  @staticmethod
+  def grpc_type() -> type_pb2.Type:
+    return type_pb2.Type(code=type_pb2.ARRAY)
+
+  @staticmethod
+  def validate_type(value: Any) -> None:
+    if not isinstance(value, list):
+      raise error.ValidationError('{} is not of type list'.format(value))
+    for item in value:
+      if not isinstance(item, float):
+        raise error.ValidationError('{} is not of type float'.format(item))
+
+
+class DateArray(FieldType):
+  """Represents an array of dates type."""
+
+  @staticmethod
+  def ddl() -> str:
+    return 'ARRAY<DATE>'
+
+  @staticmethod
+  def grpc_type() -> type_pb2.Type:
+    return type_pb2.Type(code=type_pb2.ARRAY)
+
+  @staticmethod
+  def validate_type(value: Any) -> None:
+    if not isinstance(value, list):
+      raise error.ValidationError('{} is not of type list'.format(value))
+    for item in value:
+      try:
+        datetime.datetime.strptime(item, "%Y-%m-%d")
+      except:
+        raise error.ValidationError('{} is not of type date (YYYY-[M]M-[D]D)'.format(item))
+
+
 class Timestamp(FieldType):
   """Represents a timestamp type."""
 
@@ -211,4 +312,4 @@ class Timestamp(FieldType):
       raise error.ValidationError('{} is not of type datetime'.format(value))
 
 
-ALL_TYPES = [Boolean, Integer, Float, String, StringArray, Timestamp]
+ALL_TYPES = [Boolean, Integer, Float, String, Date, Timestamp, StringArray, BoolArray, IntegerArray, FloatArray, DateArray]
