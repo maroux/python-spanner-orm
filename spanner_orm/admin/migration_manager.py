@@ -31,9 +31,10 @@ class MigrationManager:
 
     DEFAULT_DIRECTORY = "migrations"
 
-    def __init__(self, basedir: Optional[str] = None):
+    def __init__(self, basedir: Optional[str] = None, pkg_name: Optional[str] = None):
         self.basedir = basedir or self.DEFAULT_DIRECTORY
         self._migrations = None
+        self._pkg_name = pkg_name
 
         if not os.path.exists(self.basedir):
             os.makedirs(self.basedir)
@@ -75,6 +76,11 @@ class MigrationManager:
         """Loads a single migration from the given filename in the base dir."""
         module_name = re.sub(r"\W", "_", filename)
         path = os.path.join(self.basedir, filename)
+
+        if self._pkg_name is not None:
+            # Prepend package name to module name to import full module name
+            module_name = "{}.{}".format(self._pkg_name, module_name)
+
         spec = importlib.util.spec_from_file_location(module_name, path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
