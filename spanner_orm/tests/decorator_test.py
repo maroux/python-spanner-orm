@@ -21,58 +21,56 @@ from spanner_orm import decorator
 
 
 class DecoratorTest(parameterized.TestCase):
+    @parameterized.parameters(
+        (decorator.transactional_read, "run_read_only"),
+        (decorator.transactional_write, "run_write"),
+    )
+    @mock.patch("spanner_orm.api.spanner_api")
+    def test_transactional_injects_new_transaction(
+        self, decorator_in_test, method_name_to_mock, mock_spanner_api
+    ):
+        mock_tx = mock.Mock()
+        mock_api_method = getattr(mock_spanner_api.return_value, method_name_to_mock)
+        mock_api_method.side_effect = mock_spanner_method(mock_tx)
 
-  @parameterized.parameters(
-      (decorator.transactional_read, 'run_read_only'),
-      (decorator.transactional_write, 'run_write'),
-  )
-  @mock.patch('spanner_orm.api.spanner_api')
-  def test_transactional_injects_new_transaction(self, decorator_in_test,
-                                                 method_name_to_mock,
-                                                 mock_spanner_api):
-    mock_tx = mock.Mock()
-    mock_api_method = getattr(mock_spanner_api.return_value,
-                              method_name_to_mock)
-    mock_api_method.side_effect = mock_spanner_method(mock_tx)
+        @decorator_in_test
+        def get_book(book_id, genre=None, transaction=None):
+            self.assertEqual(mock_tx, transaction)
+            self.assertEqual(123, book_id)
+            self.assertEqual("horror", genre)
 
-    @decorator_in_test
-    def get_book(book_id, genre=None, transaction=None):
-      self.assertEqual(mock_tx, transaction)
-      self.assertEqual(123, book_id)
-      self.assertEqual('horror', genre)
+            return 200
 
-      return 200
+        result = get_book(123, genre="horror")
+        self.assertEqual(200, result)
+        mock_api_method.assert_called_once_with(mock.ANY, 123, genre="horror")
 
-    result = get_book(123, genre='horror')
-    self.assertEqual(200, result)
-    mock_api_method.assert_called_once_with(mock.ANY, 123, genre='horror')
+    @parameterized.parameters(
+        decorator.transactional_read, decorator.transactional_write
+    )
+    def test_transactional_uses_given_transaction(self, decorator_in_test):
+        mock_tx = mock.Mock()
 
-  @parameterized.parameters(decorator.transactional_read,
-                            decorator.transactional_write)
-  def test_transactional_uses_given_transaction(self, decorator_in_test):
-    mock_tx = mock.Mock()
+        @decorator_in_test
+        def get_book(book_id, genre=None, transaction=None):
+            self.assertEqual(mock_tx, transaction)
+            self.assertEqual(123, book_id)
+            self.assertEqual("horror", genre)
 
-    @decorator_in_test
-    def get_book(book_id, genre=None, transaction=None):
-      self.assertEqual(mock_tx, transaction)
-      self.assertEqual(123, book_id)
-      self.assertEqual('horror', genre)
+            return 200
 
-      return 200
+        result = get_book(123, genre="horror", transaction=mock_tx)
 
-    result = get_book(123, genre='horror', transaction=mock_tx)
-
-    self.assertEqual(200, result)
+        self.assertEqual(200, result)
 
 
 def mock_spanner_method(mock_transaction):
+    def _mock_spanner_method(method, *args, **kwargs):
+        return method(mock_transaction, *args, **kwargs)
 
-  def _mock_spanner_method(method, *args, **kwargs):
-    return method(mock_transaction, *args, **kwargs)
-
-  return _mock_spanner_method
+    return _mock_spanner_method
 
 
-if __name__ == '__main__':
-  logging.basicConfig()
-  unittest.main()
+if __name__ == "__main__":
+    logging.basicConfig()
+    unittest.main()

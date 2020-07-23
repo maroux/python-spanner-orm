@@ -18,11 +18,11 @@ from typing import Callable, TypeVar
 
 from spanner_orm import api
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def transactional_read(func: Callable[..., T]) -> Callable[..., T]:
-  """Injects a read-only transaction as keyword argument to given function.
+    """Injects a read-only transaction as keyword argument to given function.
 
     For example:
 
@@ -50,12 +50,12 @@ def transactional_read(func: Callable[..., T]) -> Callable[..., T]:
   Returns:
     decorated function
   """
-  api_method_lambda = lambda: api.spanner_api().run_read_only
-  return _transactional(api_method_lambda, func)
+    api_method_lambda = lambda: api.spanner_api().run_read_only
+    return _transactional(api_method_lambda, func)
 
 
 def transactional_write(func: Callable[..., T]) -> Callable[..., T]:
-  """Injects a write transaction object as first argument to given function.
+    """Injects a write transaction object as first argument to given function.
 
     For example:
 
@@ -83,26 +83,27 @@ def transactional_write(func: Callable[..., T]) -> Callable[..., T]:
   Returns:
     decorated function
   """
-  api_method_lambda = lambda: api.spanner_api().run_write
-  return _transactional(api_method_lambda, func)
+    api_method_lambda = lambda: api.spanner_api().run_write
+    return _transactional(api_method_lambda, func)
 
 
-def _transactional(spanner_api_method_lambda: Callable[[], Callable[..., T]],
-                   func: Callable[..., T]) -> Callable[..., T]:
-  """Returns decorated function."""
+def _transactional(
+    spanner_api_method_lambda: Callable[[], Callable[..., T]], func: Callable[..., T]
+) -> Callable[..., T]:
+    """Returns decorated function."""
 
-  # Spanner library calls given function with transaction as first argument.
-  # It will call 'spanner_wrapper', and we will move transaction from first
-  # argument to 'transaction' kwarg and call actual 'func'
+    # Spanner library calls given function with transaction as first argument.
+    # It will call 'spanner_wrapper', and we will move transaction from first
+    # argument to 'transaction' kwarg and call actual 'func'
 
-  def spanner_wrapper(transaction, *args, **kwargs) -> T:
-    return func(*args, transaction=transaction, **kwargs)
+    def spanner_wrapper(transaction, *args, **kwargs) -> T:
+        return func(*args, transaction=transaction, **kwargs)
 
-  def wrapper(*args, **kwargs) -> T:
-    if 'transaction' in kwargs:
-      return func(*args, **kwargs)
+    def wrapper(*args, **kwargs) -> T:
+        if "transaction" in kwargs:
+            return func(*args, **kwargs)
 
-    spanner_api_method = spanner_api_method_lambda()
-    return spanner_api_method(spanner_wrapper, *args, **kwargs)
+        spanner_api_method = spanner_api_method_lambda()
+        return spanner_api_method(spanner_wrapper, *args, **kwargs)
 
-  return wrapper
+    return wrapper

@@ -22,15 +22,15 @@ from spanner_orm.admin import api
 
 
 class InformationSchema(model.Model):
-  """Base model for Spanner INFORMATION_SCHEMA tables.
+    """Base model for Spanner INFORMATION_SCHEMA tables.
 
   Note: Writes are disallowed and AdminApi is used for reads.
   """
 
-  @classmethod
-  def spanner_api(cls) -> api.SpannerAdminApi:
-    return api.spanner_admin_api()
+    @classmethod
+    def spanner_api(cls) -> api.SpannerAdminApi:
+        return api.spanner_admin_api()
 
-  @classmethod
-  def _execute_write(cls, *args) -> NoReturn:
-    raise error.SpannerError('Writes not allowed for schema tables')
+    @classmethod
+    def _execute_write(cls, *args) -> NoReturn:
+        raise error.SpannerError("Writes not allowed for schema tables")

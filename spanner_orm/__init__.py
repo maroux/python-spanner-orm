@@ -106,6 +106,6 @@ model_creation_ddl = update_module.model_creation_ddl
 MigrationExecutor = migration_executor.MigrationExecutor
 
 try:
-  __import__('pkg_resources').declare_namespace('spanner_orm')
+    __import__("pkg_resources").declare_namespace("spanner_orm")
 except ImportError:
-  __path__ = __import__('pkgutil').extend_path(__path__, 'spanner_orm')
+    __path__ = __import__("pkgutil").extend_path(__path__, "spanner_orm")

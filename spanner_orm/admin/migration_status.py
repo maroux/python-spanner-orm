@@ -20,12 +20,11 @@ from spanner_orm.admin import api
 
 
 class MigrationStatus(model.Model):
+    @classmethod
+    def spanner_api(cls) -> api.SpannerAdminApi:
+        return api.spanner_admin_api()
 
-  @classmethod
-  def spanner_api(cls) -> api.SpannerAdminApi:
-    return api.spanner_admin_api()
-
-  __table__ = 'spanner_orm_migrations'
-  id = field.Field(field.String, primary_key=True)
-  migrated = field.Field(field.Boolean)
-  update_time = field.Field(field.Timestamp)
+    __table__ = "spanner_orm_migrations"
+    id = field.Field(field.String, primary_key=True)
+    migrated = field.Field(field.Boolean)
+    update_time = field.Field(field.Timestamp)

@@ -22,26 +22,27 @@ from spanner_orm.admin import schema
 
 
 class ColumnSchema(schema.InformationSchema):
-  """Model for interacting with Spanner column schema table."""
+    """Model for interacting with Spanner column schema table."""
 
-  __table__ = 'information_schema.columns'
-  table_catalog = field.Field(field.String, primary_key=True)
-  table_schema = field.Field(field.String, primary_key=True)
-  table_name = field.Field(field.String, primary_key=True)
-  column_name = field.Field(field.String, primary_key=True)
-  ordinal_position = field.Field(field.Integer)
-  is_nullable = field.Field(field.String)
-  spanner_type = field.Field(field.String)
+    __table__ = "information_schema.columns"
+    table_catalog = field.Field(field.String, primary_key=True)
+    table_schema = field.Field(field.String, primary_key=True)
+    table_name = field.Field(field.String, primary_key=True)
+    column_name = field.Field(field.String, primary_key=True)
+    ordinal_position = field.Field(field.Integer)
+    is_nullable = field.Field(field.String)
+    spanner_type = field.Field(field.String)
 
-  @property
-  def nullable(self) -> bool:
-    return self.is_nullable == 'YES'
+    @property
+    def nullable(self) -> bool:
+        return self.is_nullable == "YES"
 
-  @property
-  def field_type(self) -> Type[field.FieldType]:
-    for field_type in field.ALL_TYPES:
-      if self.spanner_type == field_type.ddl():
-        return field_type
+    @property
+    def field_type(self) -> Type[field.FieldType]:
+        for field_type in field.ALL_TYPES:
+            if self.spanner_type == field_type.ddl():
+                return field_type
 
-    raise error.SpannerError('No corresponding Type for {}'.format(
-        self.spanner_type))
+        raise error.SpannerError(
+            "No corresponding Type for {}".format(self.spanner_type)
+        )

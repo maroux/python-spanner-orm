@@ -26,20 +26,21 @@ from google.cloud import spanner
 from google.cloud.spanner_v1 import database as spanner_database
 from google.cloud.spanner_v1 import pool as spanner_pool
 
-CallableReturn = TypeVar('CallableReturn')
+CallableReturn = TypeVar("CallableReturn")
 
 
 class SpannerReadApi(abc.ABC):
-  """Handles sending read requests to Spanner."""
+    """Handles sending read requests to Spanner."""
 
-  @property
-  @abc.abstractmethod
-  def _connection(self) -> spanner_database.Database:
-    raise NotImplementedError
+    @property
+    @abc.abstractmethod
+    def _connection(self) -> spanner_database.Database:
+        raise NotImplementedError
 
-  def run_read_only(self, method: Callable[..., CallableReturn], *args: Any,
-                    **kwargs: Any) -> CallableReturn:
-    """Wraps read-only queries in a read transaction.
+    def run_read_only(
+        self, method: Callable[..., CallableReturn], *args: Any, **kwargs: Any
+    ) -> CallableReturn:
+        """Wraps read-only queries in a read transaction.
 
     The callable will be executed with the read transaction (Snapshot from
     the Spanner client library)passed to it as the first argument.
@@ -52,21 +53,22 @@ class SpannerReadApi(abc.ABC):
     Returns:
       The return value from `method` will be returned from this method
     """
-    with self._connection.snapshot(multi_use=True) as snapshot:
-      return method(snapshot, *args, **kwargs)
+        with self._connection.snapshot(multi_use=True) as snapshot:
+            return method(snapshot, *args, **kwargs)
 
 
 class SpannerWriteApi(abc.ABC):
-  """Handles sending write requests to Spanner."""
+    """Handles sending write requests to Spanner."""
 
-  @property
-  @abc.abstractmethod
-  def _connection(self) -> spanner_database.Database:
-    raise NotImplementedError
+    @property
+    @abc.abstractmethod
+    def _connection(self) -> spanner_database.Database:
+        raise NotImplementedError
 
-  def run_write(self, method: Callable[..., CallableReturn], *args: Any,
-                **kwargs: Any) -> CallableReturn:
-    """Wraps read-write queries in a write transaction.
+    def run_write(
+        self, method: Callable[..., CallableReturn], *args: Any, **kwargs: Any
+    ) -> CallableReturn:
+        """Wraps read-write queries in a write transaction.
 
     The callable will be executed with the write transaction passed to it as
     the first argument. If the transaction aborts (usually because the data
@@ -82,81 +84,86 @@ class SpannerWriteApi(abc.ABC):
     Returns:
       The return value from `method` will be returned from this method
     """
-    return self._connection.run_in_transaction(method, *args, **kwargs)
+        return self._connection.run_in_transaction(method, *args, **kwargs)
 
 
 class SpannerConnection:
-  """Class that handles connecting to a Spanner database."""
+    """Class that handles connecting to a Spanner database."""
 
-  def __init__(self,
-               instance: str,
-               database: str,
-               project: Optional[str] = None,
-               credentials: Optional[auth_credentials.Credentials] = None,
-               pool: Optional[spanner_pool.AbstractSessionPool] = None,
-               create_ddl: Optional[Iterable[str]] = None,
-               client_info: Optional[ClientInfo] = None,
-               client_options = None,
-               query_options = None):
-    """Connects to the specified Spanner database."""
-    params = dict(
-      project=project,
-      credentials=credentials,
-      client_options=client_options,
-      query_options=query_options,
-    )
-    if client_info is not None:
-      params["client_info"] = client_info
-    client = spanner.Client(**params)
-    instance = client.instance(instance)
-    self.database = instance.database(
-        database, pool=pool, ddl_statements=create_ddl or ())
+    def __init__(
+        self,
+        instance: str,
+        database: str,
+        project: Optional[str] = None,
+        credentials: Optional[auth_credentials.Credentials] = None,
+        pool: Optional[spanner_pool.AbstractSessionPool] = None,
+        create_ddl: Optional[Iterable[str]] = None,
+        client_info: Optional[ClientInfo] = None,
+        client_options=None,
+        query_options=None,
+    ):
+        """Connects to the specified Spanner database."""
+        params = dict(
+            project=project,
+            credentials=credentials,
+            client_options=client_options,
+            query_options=query_options,
+        )
+        if client_info is not None:
+            params["client_info"] = client_info
+        client = spanner.Client(**params)
+        instance = client.instance(instance)
+        self.database = instance.database(
+            database, pool=pool, ddl_statements=create_ddl or ()
+        )
 
 
 class SpannerApi(SpannerReadApi, SpannerWriteApi):
-  """Class that handles reading from and writing to Spanner tables."""
+    """Class that handles reading from and writing to Spanner tables."""
 
-  def __init__(self, connection: SpannerConnection):
-    self._spanner_connection = connection
+    def __init__(self, connection: SpannerConnection):
+        self._spanner_connection = connection
 
-  @property
-  def _connection(self):
-    return self._spanner_connection.database
+    @property
+    def _connection(self):
+        return self._spanner_connection.database
 
 
 _api = None  # type: Optional[SpannerApi]
 
 
-def connect(instance: str,
-            database: str,
-            project: Optional[str] = None,
-            credentials: Optional[auth_credentials.Credentials] = None,
-            pool: Optional[spanner_pool.AbstractSessionPool] = None
-           ) -> SpannerApi:
-  """Connects to the Spanner database and sets the global spanner_api."""
-  connection = SpannerConnection(
-      instance, database, project=project, credentials=credentials, pool=pool)
-  return from_connection(connection)
+def connect(
+    instance: str,
+    database: str,
+    project: Optional[str] = None,
+    credentials: Optional[auth_credentials.Credentials] = None,
+    pool: Optional[spanner_pool.AbstractSessionPool] = None,
+) -> SpannerApi:
+    """Connects to the Spanner database and sets the global spanner_api."""
+    connection = SpannerConnection(
+        instance, database, project=project, credentials=credentials, pool=pool
+    )
+    return from_connection(connection)
 
 
 def from_connection(connection: SpannerConnection, **kwargs) -> SpannerApi:
-  """
+    """
   Sets the global spanner_api from the provided connection.
   :param kwargs: Additional keyword args to pass to SpannerApi class
   """
-  global _api
-  _api = SpannerApi(connection, **kwargs)
-  return _api
+    global _api
+    _api = SpannerApi(connection, **kwargs)
+    return _api
 
 
 def hangup() -> None:
-  """Clears the global spanner_api."""
-  global _api
-  _api = None
+    """Clears the global spanner_api."""
+    global _api
+    _api = None
 
 
 def spanner_api() -> SpannerApi:
-  """Returns the global spanner_api if it has been set."""
-  if not _api:
-    raise error.SpannerError('Must connect to Spanner before calling APIs')
-  return _api
+    """Returns the global spanner_api if it has been set."""
+    if not _api:
+        raise error.SpannerError("Must connect to Spanner before calling APIs")
+    return _api
