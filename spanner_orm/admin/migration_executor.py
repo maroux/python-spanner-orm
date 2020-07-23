@@ -51,38 +51,49 @@ class MigrationExecutor:
     def migrations(self) -> List[migration.Migration]:
         return self._manager.migrations
 
-    def migrate(self, target_migration: Optional[str] = None) -> None:
+    def migrate(
+        self, target_migration: Optional[str] = None, fake: Optional[bool] = False
+    ) -> None:
         """Executes unmigrated migrations on the curent database.
 
-    Note: SpannerAdminApi connection is modified as a result of calling
-    this method. Other connections to SpannerAdminApi in the same process
-    may be affected.
+        Note: SpannerAdminApi connection is modified as a result of calling
+        this method. Other connections to SpannerAdminApi in the same process
+        may be affected.
 
-    Args:
-      target_migration: If present, stop migrations after the target is
-        executed. If None (default), executes all unmigrated migrations
-    """
+        Args:
+        target_migration: If present, stop migrations after the target is
+            executed. If None (default), executes all unmigrated migrations
+        fake: If true, will update the status of migrations to `migrated=True`
+              without actually executing migrations.
+        """
+        print("Starting migrations")
         self._connect()
         self._validate_migrations()
+
         # Filter to unmigrated migrations
         migrations = self._filter_migrations(self.migrations(), False, target_migration)
         for migration_ in migrations:
-            _logger.info("Processing migration %s", migration_.migration_id)
-            schema_update = migration_.upgrade()
-            if not isinstance(schema_update, update.SchemaUpdate):
-                raise error.SpannerError(
-                    "Migration {} did not return a SchemaUpdate".format(
-                        migration_.migration_id
+            fake_text = "fake " if fake else ""
+            msg = "Processing {}migration {}".format(fake_text, migration_.migration_id)
+            print(msg)
+            _logger.info(msg)
+
+            if not fake:
+                schema_update = migration_.upgrade()
+                if not isinstance(schema_update, update.SchemaUpdate):
+                    raise error.SpannerError(
+                        "Migration {} did not return a SchemaUpdate".format(
+                            migration_.migration_id
+                        )
                     )
-                )
-            schema_update.execute()
+                schema_update.execute()
 
             self._update_status(migration_.migration_id, True)
         self._hangup()
+        print("Done")
 
     def show_migrations(self) -> None:
-        """Prints information about all migrations.
-    """
+        """Prints information about all migrations."""
         self._connect()
         self._validate_migrations()
 
@@ -101,17 +112,18 @@ class MigrationExecutor:
     def rollback(self, target_migration: str) -> None:
         """Rolls back migrated migrations on the curent database.
 
-    Note: SpannerAdminApi connection is modified as a result of calling
-    this method. Other connections to SpannerAdminApi in the same process
-    may be affected.
+        Note: SpannerAdminApi connection is modified as a result of calling
+        this method. Other connections to SpannerAdminApi in the same process
+        may be affected.
 
-    Args:
-      target_migration: Stop rolling back migrations after this migration is
-        rolled back. Must be present in list of migrated migrations.
-    """
+        Args:
+        target_migration: Stop rolling back migrations after this migration is
+            rolled back. Must be present in list of migrated migrations.
+        """
         if not target_migration:
             raise error.SpannerError("Must specify a migration to roll back")
 
+        print("Starting migration rollback past ID {}".format(target_migration))
         self._connect()
         self._validate_migrations()
         # Filter to migrated migrations from most recently applied
@@ -119,7 +131,9 @@ class MigrationExecutor:
             reversed(self.migrations()), True, target_migration
         )
         for migration_ in migrations:
-            _logger.info("Processing migration %s", migration_.migration_id)
+            msg = "Processing migration {}".format(migration_.migration_id)
+            print(msg)
+            _logger.info(msg)
             schema_update = migration_.downgrade()
             if not isinstance(schema_update, update.SchemaUpdate):
                 raise error.SpannerError(
@@ -131,6 +145,7 @@ class MigrationExecutor:
 
             self._update_status(migration_.migration_id, False)
         self._hangup()
+        print("Done")
 
     def _connect(self) -> None:
         api_connection = admin_api.from_connection(self._connection)
