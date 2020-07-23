@@ -21,78 +21,84 @@ from spanner_orm import relationship
 
 
 class SmallTestModel(model.Model):
-  """Model class used for testing."""
+    """Model class used for testing."""
 
-  __table__ = 'SmallTestModel'
-  key = field.Field(field.String, primary_key=True)
-  value_1 = field.Field(field.String)
-  value_2 = field.Field(field.String, nullable=True)
-  index_1 = index.Index(['value_1'])
+    __table__ = "SmallTestModel"
+    key = field.Field(field.String, primary_key=True)
+    value_1 = field.Field(field.String)
+    value_2 = field.Field(field.String, nullable=True)
+    index_1 = index.Index(["value_1"])
 
 
 class ChildTestModel(model.Model):
-  """Model class for testing interleaved tables."""
+    """Model class for testing interleaved tables."""
 
-  __table__ = 'ChildTestModel'
-  __interleaved__ = 'SmallTestModel'
+    __table__ = "ChildTestModel"
+    __interleaved__ = "SmallTestModel"
 
-  key = field.Field(field.String, primary_key=True)
-  child_key = field.Field(field.String, primary_key=True)
+    key = field.Field(field.String, primary_key=True)
+    child_key = field.Field(field.String, primary_key=True)
 
 
 class IndexTestModel(model.Model):
-  __table__ = 'IndexTestModel'
+    __table__ = "IndexTestModel"
 
-  key = field.Field(field.String, primary_key=True)
-  value = field.Field(field.String)
+    key = field.Field(field.String, primary_key=True)
+    value = field.Field(field.String)
 
-  value_idx = index.Index(['value'], name='value')
-  value_idx2 = index.Index(['value'], name='value_desc', column_ordering={'value': False})
+    value_idx = index.Index(["value"], name="value")
+    value_idx2 = index.Index(
+        ["value"], name="value_desc", column_ordering={"value": False}
+    )
 
 
 class FieldCustomNameTestModel(model.Model):
-  __table__ = 'FieldCustomNameTestModel'
+    __table__ = "FieldCustomNameTestModel"
 
-  key = field.Field(field.String, primary_key=True, name='key2')
+    key = field.Field(field.String, primary_key=True, name="key2")
 
 
 class RelationshipTestModel(model.Model):
-  """Model class for testing relationships."""
+    """Model class for testing relationships."""
 
-  __table__ = 'RelationshipTestModel'
-  parent_key = field.Field(field.String, primary_key=True)
-  child_key = field.Field(field.String, primary_key=True)
-  parent = relationship.Relationship(
-      'spanner_orm.tests.models.SmallTestModel', {'parent_key': 'key'},
-      single=True)
-  parents = relationship.Relationship('spanner_orm.tests.models.SmallTestModel',
-                                      {'parent_key': 'key'})
+    __table__ = "RelationshipTestModel"
+    parent_key = field.Field(field.String, primary_key=True)
+    child_key = field.Field(field.String, primary_key=True)
+    parent = relationship.Relationship(
+        "spanner_orm.tests.models.SmallTestModel", {"parent_key": "key"}, single=True
+    )
+    parents = relationship.Relationship(
+        "spanner_orm.tests.models.SmallTestModel", {"parent_key": "key"}
+    )
 
 
 class InheritanceTestModel(SmallTestModel):
-  """Model class used for testing model inheritance."""
-  value_3 = field.Field(field.String, nullable=True)
+    """Model class used for testing model inheritance."""
+
+    value_3 = field.Field(field.String, nullable=True)
 
 
 class UnittestModel(model.Model):
-  """Model class used for model testing."""
+    """Model class used for model testing."""
 
-  __table__ = 'table'
-  int_ = field.Field(field.Integer, primary_key=True)
-  int_2 = field.Field(field.Integer, nullable=True)
-  float_ = field.Field(field.Float, primary_key=True)
-  float_2 = field.Field(field.Float, nullable=True)
-  string = field.Field(field.String, primary_key=True)
-  string_2 = field.Field(field.String, nullable=True)
-  string_3 = field.Field(field.String, nullable=True, size=10)
-  timestamp = field.Field(field.Timestamp)
-  timestamp_2 = field.Field(field.Timestamp, nullable=True, allow_commit_timestamp=True)
-  date = field.Field(field.Date, nullable=True)
-  bool_array = field.Field(field.BoolArray, nullable=True)
-  int_array = field.Field(field.IntegerArray, nullable=True)
-  float_array = field.Field(field.FloatArray, nullable=True)
-  date_array = field.Field(field.DateArray, nullable=True)
-  string_array = field.Field(field.StringArray, nullable=True)
-  string_array_2 = field.Field(field.StringArray, nullable=True, size=50)
+    __table__ = "table"
+    int_ = field.Field(field.Integer, primary_key=True)
+    int_2 = field.Field(field.Integer, nullable=True)
+    float_ = field.Field(field.Float, primary_key=True)
+    float_2 = field.Field(field.Float, nullable=True)
+    string = field.Field(field.String, primary_key=True)
+    string_2 = field.Field(field.String, nullable=True)
+    string_3 = field.Field(field.String, nullable=True, size=10)
+    timestamp = field.Field(field.Timestamp)
+    timestamp_2 = field.Field(
+        field.Timestamp, nullable=True, allow_commit_timestamp=True
+    )
+    date = field.Field(field.Date, nullable=True)
+    bool_array = field.Field(field.BoolArray, nullable=True)
+    int_array = field.Field(field.IntegerArray, nullable=True)
+    float_array = field.Field(field.FloatArray, nullable=True)
+    date_array = field.Field(field.DateArray, nullable=True)
+    string_array = field.Field(field.StringArray, nullable=True)
+    string_array_2 = field.Field(field.StringArray, nullable=True, size=50)
 
-  test_index = index.Index(['string_2'])
+    test_index = index.Index(["string_2"])

@@ -38,27 +38,29 @@ from spanner_orm import relationship
 
 
 class ModelMetadata(object):
-  """Hold information about a Model extracted from the class attributes."""
+    """Hold information about a Model extracted from the class attributes."""
 
-  def __init__(self,
-               table: Optional[str] = None,
-               fields: Optional[Dict[str, field.Field]] = None,
-               relations: Optional[Dict[str, relationship.Relationship]] = None,
-               indexes: Optional[Dict[str, index.Index]] = None,
-               interleaved: Optional[str] = None,
-               model_class: Optional[Type[Any]] = None):
-    self.columns = []
-    self.fields = dict(fields or {})
-    self._finalized = False
-    self.indexes = dict(indexes or {})
-    self.interleaved = interleaved
-    self.model_class = model_class
-    self.primary_keys = []
-    self.relations = dict(relations or {})
-    self.table = table or ''
+    def __init__(
+        self,
+        table: Optional[str] = None,
+        fields: Optional[Dict[str, field.Field]] = None,
+        relations: Optional[Dict[str, relationship.Relationship]] = None,
+        indexes: Optional[Dict[str, index.Index]] = None,
+        interleaved: Optional[str] = None,
+        model_class: Optional[Type[Any]] = None,
+    ):
+        self.columns = []
+        self.fields = dict(fields or {})
+        self._finalized = False
+        self.indexes = dict(indexes or {})
+        self.interleaved = interleaved
+        self.model_class = model_class
+        self.primary_keys = []
+        self.relations = dict(relations or {})
+        self.table = table or ""
 
-  def finalize(self) -> None:
-    """Finish generating metadata state.
+    def finalize(self) -> None:
+        """Finish generating metadata state.
 
     Some metadata depends on having all configuration data set before it can
     be calculated--the primary index, for example, needs all fields to be added
@@ -66,45 +68,48 @@ class ModelMetadata(object):
     relevant state has been added and the calculation of the final data should
     now happen.
     """
-    if self._finalized:
-      raise error.SpannerError('Metadata was already finalized')
-    sorted_fields = list(sorted(self.fields.values(), key=lambda f: f.position))
+        if self._finalized:
+            raise error.SpannerError("Metadata was already finalized")
+        sorted_fields = list(sorted(self.fields.values(), key=lambda f: f.position))
 
-    if index.Index.PRIMARY_INDEX not in self.indexes:
-      primary_keys = [f.name for f in sorted_fields if f.primary_key]
-      primary_index = index.Index(primary_keys)
-      primary_index.name = index.Index.PRIMARY_INDEX
-      self.indexes[index.Index.PRIMARY_INDEX] = primary_index
-    self.primary_keys = self.indexes[index.Index.PRIMARY_INDEX].columns
+        if index.Index.PRIMARY_INDEX not in self.indexes:
+            primary_keys = [f.name for f in sorted_fields if f.primary_key]
+            primary_index = index.Index(primary_keys)
+            primary_index.name = index.Index.PRIMARY_INDEX
+            self.indexes[index.Index.PRIMARY_INDEX] = primary_index
+        self.primary_keys = self.indexes[index.Index.PRIMARY_INDEX].columns
 
-    self.columns = [f.name for f in sorted_fields]
+        self.columns = [f.name for f in sorted_fields]
 
-    for _, relation in self.relations.items():
-      relation.origin = self.model_class
-    registry.model_registry().register(self.model_class)
-    self._finalized = True
+        for _, relation in self.relations.items():
+            relation.origin = self.model_class
+        registry.model_registry().register(self.model_class)
+        self._finalized = True
 
-  def add_metadata(self, metadata: 'ModelMetadata') -> None:
-    self.table = metadata.table or self.table
-    self.fields.update(metadata.fields)
-    self.relations.update(metadata.relations)
-    self.indexes.update(metadata.indexes)
-    self.interleaved = metadata.interleaved or self.interleaved
+    def add_metadata(self, metadata: "ModelMetadata") -> None:
+        self.table = metadata.table or self.table
+        self.fields.update(metadata.fields)
+        self.relations.update(metadata.relations)
+        self.indexes.update(metadata.indexes)
+        self.interleaved = metadata.interleaved or self.interleaved
 
-  def add_field(self, name: str, new_field: field.Field) -> None:
-    new_field.name = name
-    new_field.position = len(self.fields)
-    if new_field.name in self.fields:
-      raise error.SpannerError('Already contains a field named "{}"'.format(new_field.name))
-    self.fields[name] = new_field
+    def add_field(self, name: str, new_field: field.Field) -> None:
+        new_field.name = name
+        new_field.position = len(self.fields)
+        if new_field.name in self.fields:
+            raise error.SpannerError(
+                'Already contains a field named "{}"'.format(new_field.name)
+            )
+        self.fields[name] = new_field
 
-  def add_relation(self, name: str,
-                   new_relation: relationship.Relationship) -> None:
-    new_relation.name = name
-    self.relations[name] = new_relation
+    def add_relation(self, name: str, new_relation: relationship.Relationship) -> None:
+        new_relation.name = name
+        self.relations[name] = new_relation
 
-  def add_index(self, name: str, new_index: index.Index) -> None:
-    new_index.name = name
-    if new_index.name in self.indexes:
-      raise error.SpannerError('Already contains an index named "{}"'.format(new_index.name))
-    self.indexes[name] = new_index
+    def add_index(self, name: str, new_index: index.Index) -> None:
+        new_index.name = name
+        if new_index.name in self.indexes:
+            raise error.SpannerError(
+                'Already contains an index named "{}"'.format(new_index.name)
+            )
+        self.indexes[name] = new_index

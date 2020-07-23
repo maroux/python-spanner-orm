@@ -19,30 +19,35 @@ from spanner_orm.tests import models
 
 
 class MetadataTest(unittest.TestCase):
+    def test_metadata_present(self):
+        columns = ["key", "value_1", "value_2"]
+        indexes = ["PRIMARY_KEY", "index_1"]
+        table = "SmallTestModel"
+        self.assertCountEqual(columns, models.SmallTestModel.meta.columns)
+        self.assertCountEqual(columns, models.SmallTestModel.meta.fields.keys())
+        self.assertCountEqual(indexes, models.SmallTestModel.meta.indexes.keys())
+        self.assertEqual(table, models.SmallTestModel.meta.table)
 
-  def test_metadata_present(self):
-    columns = ['key', 'value_1', 'value_2']
-    indexes = ['PRIMARY_KEY', 'index_1']
-    table = 'SmallTestModel'
-    self.assertCountEqual(columns, models.SmallTestModel.meta.columns)
-    self.assertCountEqual(columns, models.SmallTestModel.meta.fields.keys())
-    self.assertCountEqual(indexes, models.SmallTestModel.meta.indexes.keys())
-    self.assertEqual(table, models.SmallTestModel.meta.table)
+    def test_metadata_inheritance(self):
+        self.assertEqual(
+            models.SmallTestModel.meta.indexes, models.InheritanceTestModel.meta.indexes
+        )
 
-  def test_metadata_inheritance(self):
-    self.assertEqual(models.SmallTestModel.meta.indexes,
-                     models.InheritanceTestModel.meta.indexes)
+        self.assertEqual(
+            models.SmallTestModel.meta.table, models.InheritanceTestModel.meta.table
+        )
 
-    self.assertEqual(models.SmallTestModel.meta.table,
-                     models.InheritanceTestModel.meta.table)
+        self.assertEqual(
+            models.SmallTestModel.meta.relations,
+            models.InheritanceTestModel.meta.relations,
+        )
 
-    self.assertEqual(models.SmallTestModel.meta.relations,
-                     models.InheritanceTestModel.meta.relations)
-
-    self.assertEqual(models.SmallTestModel.meta.interleaved,
-                     models.InheritanceTestModel.meta.interleaved)
+        self.assertEqual(
+            models.SmallTestModel.meta.interleaved,
+            models.InheritanceTestModel.meta.interleaved,
+        )
 
 
-if __name__ == '__main__':
-  logging.basicConfig()
-  unittest.main()
+if __name__ == "__main__":
+    logging.basicConfig()
+    unittest.main()

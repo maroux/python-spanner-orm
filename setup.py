@@ -14,18 +14,18 @@
 # limitations under the License.
 """spanner_orm setup file."""
 from setuptools import setup
+
 setup(
-    name='spanner-orm',
-    version='0.2.8',
-    description='Basic ORM for Spanner',
-    maintainer='Aniruddha Maru',
-    maintainer_email='aniruddhamaru@gmail.com',
-    url='https://github.com/maroux/python-spanner-orm',
-    packages=['spanner_orm', 'spanner_orm.admin'],
+    name="spanner-orm",
+    version="0.2.8",
+    description="Basic ORM for Spanner",
+    maintainer="Aniruddha Maru",
+    maintainer_email="aniruddhamaru@gmail.com",
+    url="https://github.com/maroux/python-spanner-orm",
+    packages=["spanner_orm", "spanner_orm.admin"],
     include_package_data=True,
-    python_requires='~=3.7',
-    install_requires=['google-cloud-spanner >= 1.6, <2.0.0dev'],
-    tests_require=['absl-py'],
-    entry_points={
-        'console_scripts': ['spanner-orm = spanner_orm.admin.scripts:main']
-    })
+    python_requires="~=3.7",
+    install_requires=["google-cloud-spanner >= 1.6, <2.0.0dev"],
+    tests_require=["absl-py"],
+    entry_points={"console_scripts": ["spanner-orm = spanner_orm.admin.scripts:main"]},
+)

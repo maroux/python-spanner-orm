@@ -25,9 +25,13 @@ _logger = logging.getLogger(__name__)
 
 
 # Read methods
-def find(transaction: spanner_transaction.Transaction, table_name: str,
-         columns: Iterable[str], keyset: spanner.KeySet) -> List[Iterable[Any]]:
-  """Retrieves rows from the given table based on the provided KeySet.
+def find(
+    transaction: spanner_transaction.Transaction,
+    table_name: str,
+    columns: Iterable[str],
+    keyset: spanner.KeySet,
+) -> List[Iterable[Any]]:
+    """Retrieves rows from the given table based on the provided KeySet.
 
   Args:
     transaction: The Spanner transaction to execute the request on
@@ -42,18 +46,19 @@ def find(transaction: spanner_transaction.Transaction, table_name: str,
     primary keys in the `keyset`. The order of the values in the sublist
     matches the order of the columns from the `columns` parameter.
   """
-  _logger.debug('Find table=%s columns=%s keys=%s', table_name, columns,
-                keyset.keys)
-  stream_results = transaction.read(
-      table=table_name, columns=columns, keyset=keyset)
-  return list(stream_results)
+    _logger.debug("Find table=%s columns=%s keys=%s", table_name, columns, keyset.keys)
+    stream_results = transaction.read(table=table_name, columns=columns, keyset=keyset)
+    return list(stream_results)
 
 
-def sql_query(transaction: spanner_transaction.Transaction, query: str,
-              parameters: Dict[str, Any],
-              parameter_types: Dict[str, type_pb2.Type],
-              **kwargs) -> List[Iterable[Any]]:
-  """Executes a given SQL query against the Spanner database.
+def sql_query(
+    transaction: spanner_transaction.Transaction,
+    query: str,
+    parameters: Dict[str, Any],
+    parameter_types: Dict[str, type_pb2.Type],
+    **kwargs
+) -> List[Iterable[Any]]:
+    """Executes a given SQL query against the Spanner database.
 
   This isn't technically read-only, but it's necessary to implement the read-
   only features of the ORM
@@ -72,16 +77,19 @@ def sql_query(transaction: spanner_transaction.Transaction, query: str,
     SELECT queries, the order of values in the sublist matches the order
     of the columns requested from the SELECT clause of the query.
   """
-  _logger.debug('Executing SQL:\n%s\n%s\n%s', query, parameters,
-                parameter_types)
-  stream_results = transaction.execute_sql(
-      query, params=parameters, param_types=parameter_types, **kwargs)
-  return list(stream_results)
+    _logger.debug("Executing SQL:\n%s\n%s\n%s", query, parameters, parameter_types)
+    stream_results = transaction.execute_sql(
+        query, params=parameters, param_types=parameter_types, **kwargs
+    )
+    return list(stream_results)
 
 
-def delete(transaction: spanner_transaction.Transaction, table_name: str,
-           keyset: spanner.KeySet) -> None:
-  """Deletes rows from the given table based on the provided KeySet.
+def delete(
+    transaction: spanner_transaction.Transaction,
+    table_name: str,
+    keyset: spanner.KeySet,
+) -> None:
+    """Deletes rows from the given table based on the provided KeySet.
 
   Args:
     transaction: The Spanner transaction to execute the request on
@@ -90,13 +98,17 @@ def delete(transaction: spanner_transaction.Transaction, table_name: str,
       from the Spanner table
   """
 
-  _logger.debug('Delete table=%s keys=%s', table_name, keyset.keys)
-  transaction.delete(table=table_name, keyset=keyset)
+    _logger.debug("Delete table=%s keys=%s", table_name, keyset.keys)
+    transaction.delete(table=table_name, keyset=keyset)
 
 
-def insert(transaction: spanner_transaction.Transaction, table_name: str,
-           columns: Iterable[str], values: Iterable[Iterable[Any]]) -> None:
-  """Adds rows to the given table based on the provided values.
+def insert(
+    transaction: spanner_transaction.Transaction,
+    table_name: str,
+    columns: Iterable[str],
+    values: Iterable[Iterable[Any]],
+) -> None:
+    """Adds rows to the given table based on the provided values.
 
   All non-nullable columns must be specified. Note that if a row is specified
   for which the primary key already exists in the table, an exception will
@@ -110,14 +122,17 @@ def insert(transaction: spanner_transaction.Transaction, table_name: str,
       each sublist must match the order of the columns specified in the
       `columns` parameter.
   """
-  _logger.debug('Insert table=%s columns=%s values=%s', table_name, columns,
-                values)
-  transaction.insert(table=table_name, columns=columns, values=values)
+    _logger.debug("Insert table=%s columns=%s values=%s", table_name, columns, values)
+    transaction.insert(table=table_name, columns=columns, values=values)
 
 
-def update(transaction: spanner_transaction.Transaction, table_name: str,
-           columns: Iterable[str], values: Iterable[Iterable[Any]]) -> None:
-  """Updates rows in the given table based on the provided values.
+def update(
+    transaction: spanner_transaction.Transaction,
+    table_name: str,
+    columns: Iterable[str],
+    values: Iterable[Iterable[Any]],
+) -> None:
+    """Updates rows in the given table based on the provided values.
 
   Note that if a row is specified for which the primary key does not
   exist in the table, an exception will be thrown and the update
@@ -131,14 +146,17 @@ def update(transaction: spanner_transaction.Transaction, table_name: str,
       each sublist must match the order of the columns specified in the
       `columns` parameter.
   """
-  _logger.debug('Update table=%s columns=%s values=%s', table_name, columns,
-                values)
-  transaction.update(table=table_name, columns=columns, values=values)
+    _logger.debug("Update table=%s columns=%s values=%s", table_name, columns, values)
+    transaction.update(table=table_name, columns=columns, values=values)
 
 
-def upsert(transaction: spanner_transaction.Transaction, table_name: str,
-           columns: Iterable[str], values: Iterable[Iterable[Any]]) -> None:
-  """Inserts or updates rows in the given table based on the provided values.
+def upsert(
+    transaction: spanner_transaction.Transaction,
+    table_name: str,
+    columns: Iterable[str],
+    values: Iterable[Iterable[Any]],
+) -> None:
+    """Inserts or updates rows in the given table based on the provided values.
 
   All non-nullable columns must be specified, similarly to the insert method.
   The presence or absence of data in the table will not cause an exception
@@ -152,6 +170,5 @@ def upsert(transaction: spanner_transaction.Transaction, table_name: str,
       each sublist must match the order of the columns specified in the
       `columns` parameter.
   """
-  _logger.debug('Upsert table=%s columns=%s values=%s', table_name, columns,
-                values)
-  transaction.insert_or_update(table=table_name, columns=columns, values=values)
+    _logger.debug("Upsert table=%s columns=%s values=%s", table_name, columns, values)
+    transaction.insert_or_update(table=table_name, columns=columns, values=values)

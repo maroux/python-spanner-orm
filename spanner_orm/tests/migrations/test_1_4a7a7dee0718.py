@@ -20,15 +20,15 @@ Created: 2019-02-27 18:52
 
 import spanner_orm
 
-migration_id = '4a7a7dee0718'
+migration_id = "4a7a7dee0718"
 prev_migration_id = None
 
 
 # Returns a SchemaUpdate object that tells what should be changed
 def upgrade() -> spanner_orm.NoUpdate:
-  return spanner_orm.NoUpdate()
+    return spanner_orm.NoUpdate()
 
 
 # Returns a SchemaUpdate object that tells how to roll back the changes
 def downgrade() -> spanner_orm.NoUpdate:
-  return spanner_orm.NoUpdate()
+    return spanner_orm.NoUpdate()

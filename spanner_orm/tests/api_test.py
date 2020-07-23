@@ -22,43 +22,42 @@ from spanner_orm.admin import api as admin_api
 
 
 class ApiTest(unittest.TestCase):
+    @mock.patch("google.cloud.spanner.Client")
+    def test_api_connection(self, client):
+        connection = self.mock_connection(client)
+        api.connect("", "", "")
+        self.assertEqual(api.spanner_api()._connection, connection)
 
-  @mock.patch('google.cloud.spanner.Client')
-  def test_api_connection(self, client):
-    connection = self.mock_connection(client)
-    api.connect('', '', '')
-    self.assertEqual(api.spanner_api()._connection, connection)
+        api.hangup()
+        with self.assertRaises(error.SpannerError):
+            api.spanner_api()
 
-    api.hangup()
-    with self.assertRaises(error.SpannerError):
-      api.spanner_api()
+    def test_api_error_when_not_connected(self):
+        with self.assertRaises(error.SpannerError):
+            api.spanner_api()
 
-  def test_api_error_when_not_connected(self):
-    with self.assertRaises(error.SpannerError):
-      api.spanner_api()
+    @mock.patch("google.cloud.spanner.Client")
+    def test_admin_api_connection(self, client):
+        connection = self.mock_connection(client)
+        admin_api.connect("", "", "")
+        self.assertEqual(admin_api.spanner_admin_api()._connection, connection)
 
-  @mock.patch('google.cloud.spanner.Client')
-  def test_admin_api_connection(self, client):
-    connection = self.mock_connection(client)
-    admin_api.connect('', '', '')
-    self.assertEqual(admin_api.spanner_admin_api()._connection, connection)
+        admin_api.hangup()
+        with self.assertRaises(error.SpannerError):
+            admin_api.spanner_admin_api()
 
-    admin_api.hangup()
-    with self.assertRaises(error.SpannerError):
-      admin_api.spanner_admin_api()
+    @mock.patch("google.cloud.spanner.Client")
+    def test_admin_api_create_ddl_connection(self, client):
+        connection = self.mock_connection(client)
+        admin_api.connect("", "", "", create_ddl=["create ddl"])
+        self.assertEqual(admin_api.spanner_admin_api()._connection, connection)
 
-  @mock.patch('google.cloud.spanner.Client')
-  def test_admin_api_create_ddl_connection(self, client):
-    connection = self.mock_connection(client)
-    admin_api.connect('', '', '', create_ddl=['create ddl'])
-    self.assertEqual(admin_api.spanner_admin_api()._connection, connection)
-
-  def mock_connection(self, client):
-    connection = mock.Mock()
-    client().instance().database.return_value = connection
-    return connection
+    def mock_connection(self, client):
+        connection = mock.Mock()
+        client().instance().database.return_value = connection
+        return connection
 
 
-if __name__ == '__main__':
-  logging.basicConfig()
-  unittest.main()
+if __name__ == "__main__":
+    logging.basicConfig()
+    unittest.main()

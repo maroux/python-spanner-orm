@@ -22,44 +22,45 @@ from spanner_orm import error
 
 @dataclasses.dataclass
 class RegistryComponent:
-  references: List[Type[Any]] = dataclasses.field(default_factory=list)
+    references: List[Type[Any]] = dataclasses.field(default_factory=list)
 
-  def add(self, reference: Type[Any]) -> None:
-    self.references.append(reference)
+    def add(self, reference: Type[Any]) -> None:
+        self.references.append(reference)
 
 
 class Registry(object):
+    def __init__(self):
+        self._registered = {}  # type: Dict[str, RegistryComponent]
 
-  def __init__(self):
-    self._registered = {}  # type: Dict[str, RegistryComponent]
+    def _name_from_class(self, klass: Type[Any]) -> str:
+        return "{}.{}".format(klass.__module__, klass.__name__)
 
-  def _name_from_class(self, klass: Type[Any]) -> str:
-    return '{}.{}'.format(klass.__module__, klass.__name__)
+    def register(self, to_register: Type[Any]) -> None:
+        name_components = reversed(self._name_from_class(to_register).split("."))
+        name = None
+        for component in name_components:
+            name = name = "{}.{}".format(component, name) if name else component
+            if name not in self._registered:
+                self._registered[name] = RegistryComponent()
+            self._registered[name].add(to_register)
 
-  def register(self, to_register: Type[Any]) -> None:
-    name_components = reversed(self._name_from_class(to_register).split('.'))
-    name = None
-    for component in name_components:
-      name = name = '{}.{}'.format(component, name) if name else component
-      if name not in self._registered:
-        self._registered[name] = RegistryComponent()
-      self._registered[name].add(to_register)
+    def get(self, name: Union[Type[Any], str]) -> Type[Any]:
+        if isinstance(name, type):
+            name = self._name_from_class(name)
 
-  def get(self, name: Union[Type[Any], str]) -> Type[Any]:
-    if isinstance(name, type):
-      name = self._name_from_class(name)
-
-    if name not in self._registered:
-      raise error.SpannerError(
-          '{} was not found, verify it has been imported'.format(name))
-    if len(self._registered[name].references) > 1:
-      raise error.SpannerError(
-          'Multiple classes match {}, add more specificity'.format(name))
-    return self._registered[name].references[0]
+        if name not in self._registered:
+            raise error.SpannerError(
+                "{} was not found, verify it has been imported".format(name)
+            )
+        if len(self._registered[name].references) > 1:
+            raise error.SpannerError(
+                "Multiple classes match {}, add more specificity".format(name)
+            )
+        return self._registered[name].references[0]
 
 
 _registry = Registry()
 
 
 def model_registry():
-  return _registry
+    return _registry

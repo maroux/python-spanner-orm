@@ -19,15 +19,15 @@ from spanner_orm.admin import schema
 
 
 class IndexSchema(schema.InformationSchema):
-  """Model for interacting with Spanner index schema table."""
+    """Model for interacting with Spanner index schema table."""
 
-  __table__ = 'information_schema.indexes'
-  table_catalog = field.Field(field.String, primary_key=True)
-  table_schema = field.Field(field.String, primary_key=True)
-  table_name = field.Field(field.String, primary_key=True)
-  index_name = field.Field(field.String, primary_key=True)
-  index_type = field.Field(field.String)
-  parent_table_name = field.Field(field.String, nullable=True)
-  is_unique = field.Field(field.Boolean)
-  is_null_filtered = field.Field(field.Boolean)
-  index_state = field.Field(field.String)
+    __table__ = "information_schema.indexes"
+    table_catalog = field.Field(field.String, primary_key=True)
+    table_schema = field.Field(field.String, primary_key=True)
+    table_name = field.Field(field.String, primary_key=True)
+    index_name = field.Field(field.String, primary_key=True)
+    index_type = field.Field(field.String)
+    parent_table_name = field.Field(field.String, nullable=True)
+    is_unique = field.Field(field.Boolean)
+    is_null_filtered = field.Field(field.Boolean)
+    index_state = field.Field(field.String)
