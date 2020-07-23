@@ -59,9 +59,13 @@ class TestModel(spanner_orm.Model):
   value_index = spanner_orm.Index(['value'])
 
   # To indicate that there is a foreign key relationship from this table to
-  # another one, use a Relationship. This has no impact on the representation
-  # of the table inside Spanner
-  fake_relationship = spanner_orm.Relationship(
+  # another one, use a Relationship.
+  # Note:
+  # - The name of this relationship will be used to name the constraint when
+  #   the DDL is generated for the table
+  # - Spanner supports multi-column foreign key relationships
+  #   To use this, simply add another column relationship in the dictionary
+  fk_table_constraint = spanner_orm.Relationship(
     'OtherModel',
     {'value': 'other_model_column'})
 ```
