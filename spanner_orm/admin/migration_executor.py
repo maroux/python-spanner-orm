@@ -34,9 +34,12 @@ class MigrationExecutor:
     """Handles execution of migrations."""
 
     def __init__(
-        self, connection: api.SpannerConnection, basedir: Optional[str] = None
+        self,
+        connection: api.SpannerConnection,
+        basedir: Optional[str] = None,
+        pkg_name: Optional[str] = None,
     ):
-        self._manager = migration_manager.MigrationManager(basedir)
+        self._manager = migration_manager.MigrationManager(basedir, pkg_name)
         self._migration_status_map = None
         self._connection = connection
 

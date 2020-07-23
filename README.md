@@ -8,11 +8,13 @@ This is a lightweight ORM written in Python and built on top of Cloud Spanner.
 
 Make sure that Python 3.7 is the default version of python for your environment,
 then run:
-```pip install spanner-orm```
+`pip install spanner-orm`
 
 ### Connecting
+
 To connect the Spanner ORM to an existing Spanner database:
-``` python
+
+```python
 import spanner_orm
 spanner_orm.connect(instance_name, database_name)
 ```
@@ -27,9 +29,11 @@ libraries seems to not work, and the thread code associated with using the Pingi
 also seems to not do what is intended (ping the pool every so often)
 
 ### Creating a model
+
 In order to write to and read from a table on Spanner, you need to tell the ORM
 about the table by writing a model class, which looks something like this:
-``` python
+
+```python
 import spanner_orm
 
 class TestModel(spanner_orm.Model):
@@ -67,7 +71,7 @@ the corresponding table on the database through the ORM in one of two ways. If
 the database has not yet been created, we can create it and the table at the
 same time by:
 
-``` python
+```python
 admin_api = spanner_orm.connect_admin(
   'instance_name',
   'database_name',
@@ -79,16 +83,16 @@ If the database already exists, we can execute a Migration where the upgrade
 method returns a CreateTable for the model you have just defined (see section
 on migrations)
 
-
 ### Retrieve data from Spanner
+
 All queries through Spanner take place in a
 [transaction](https://cloud.google.com/spanner/docs/transactions). The ORM
 usually expects a transaction to be present and provided, but if None is
 specified, a new transaction will be created for that request.
-The two main ways of retrieving data through the ORM are ```where()``` and
-```find()```/```find_multi()```:
+The two main ways of retrieving data through the ORM are `where()` and
+`find()`/`find_multi()`:
 
-``` python
+```python
 # where() is invokes on a model class to retrieve models of that tyep. it takes a
 # transaction and then a sequence of conditions.
 # Most conditions that specify a Field, Index, Relationship, or Model can take
@@ -118,20 +122,24 @@ specific_object = finder(1)
 ```
 
 ### Write data to Spanner
+
 The simplest way to write data is to create a Model (or retrieve one and modify
 it) and then call save() on it:
-``` python
+
+```python
 test_model = TestModel({'key': 'key', 'value': 1})
 test_model.save()
 ```
+
 Note that creating a model as per above will fail if there's already a row in
 the database where the primary key matches, as it uses a Spanner INSERT instead
 of an UPDATE, as the ORM thinks it's a new object, as it wasn't retrieved from
 Spanner.
 
-For modifying multiple objects at the same time, the Model ```save_batch()``` method
+For modifying multiple objects at the same time, the Model `save_batch()` method
 can be used:
-``` python
+
+```python
 models = []
 for i in range(10):
   key = 'test_{}'.format(i)
@@ -139,35 +147,38 @@ for i in range(10):
 TestModel.save_batch(None, models)
 ```
 
-```spanner_orm.spanner_api().run_write()``` can be used for executing read-write
-transactions, or the ```transactional_write``` decorator can be used similarly
+`spanner_orm.spanner_api().run_write()` can be used for executing read-write
+transactions, or the `transactional_write` decorator can be used similarly
 to the read decorator mentioned above. Note that if a transaction fails due to
 data being modified after the read happened and before the transaction finished
 executing, the called method will be re-run until it succeeds or a certain
-number of failures happen.  Make sure that there are no side effects that could
+number of failures happen. Make sure that there are no side effects that could
 cause issues if called multiple times. Exceptions thrown out of the called
 method will abort the transaction.
 
-Other helper methods exist for more complex use cases (```create```, ```update```,
-```upsert```, and others), but you will have to do more work in order to use those
+Other helper methods exist for more complex use cases (`create`, `update`,
+`upsert`, and others), but you will have to do more work in order to use those
 correctly. See the documentation on those methods for more information.
 
 ## Migrations
+
 ### Creating migrations
-Running ```spanner-orm generate <migration name>``` will generate a new
+
+Running `spanner-orm generate <migration name>` will generate a new
 migration file to be filled out in the directory specified (or 'migrations' by
-default). The ```upgrade``` function is executed when migrating, and the
-```downgrade``` function is executed when rolling back the migration. Each of
+default). The `upgrade` function is executed when migrating, and the
+`downgrade` function is executed when rolling back the migration. Each of
 these should return a single SchemaUpdate object (e.g., CreateTable, AddColumn,
 etc.), as Spanner cannot execute multiple schema updates atomically.
 
 ### Executing migrations
-Running ```spanner-orm migrate <Spanner instance> <Spanner database>``` will
+
+Running `spanner-orm migrate <Spanner instance> <Spanner database>` will
 execute all the unmigrated migrations for that database in the correct order,
 using the application default credentials. If that won't work for your use case,
-```MigrationExecutor``` can be used instead:
+`MigrationExecutor` can be used instead:
 
-``` python
+```python
 connection = spanner_orm.SpannerConnection(
   instance_name,
   database_name,
@@ -176,12 +187,22 @@ executor = spanner_orm.MigrationExecutor(connection)
 executor.migrate()
 ```
 
+- **Note:** If you need `MigrationExecutor` to import migration files under a
+  particular package name (i.e. not as parent packages) then provide the package
+  name and migration files will be imported using the full module name like so:
+
+  ```python
+  # Migration files will be imported as `project.migrations.migration_name`
+  # Allows you to import other modules from `project` into your migration files
+  executor = spanner_orm.MigrationExecutor(connection, pkg_name="project.migrations")
+  ```
+
 Note that there is no protection against trying execute migrations concurrently
 multiple times, so try not to do that.
 
 If a migration needs to be rolled back,
-```spanner-orm rollback <migration_name> <Spanner instance> <Spanner database>```
-or the corresponding ```MigrationExecutor``` method should be used.
+`spanner-orm rollback <migration_name> <Spanner instance> <Spanner database>`
+or the corresponding `MigrationExecutor` method should be used.
 
-To see a list of all migrations found, run ```spanner-orm showmigrations <Spanner instance> <Spanner database>```.
+To see a list of all migrations found, run `spanner-orm showmigrations <Spanner instance> <Spanner database>`.
 Migrations that have already been applied migrations are marked by an `[X]`.
