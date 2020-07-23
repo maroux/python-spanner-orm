@@ -70,6 +70,10 @@ class RelationshipTestModel(model.Model):
     parents = relationship.Relationship(
         "spanner_orm.tests.models.SmallTestModel", {"parent_key": "key"}
     )
+    fk_multicolumn = relationship.Relationship(
+        "spanner_orm.tests.models.SmallTestModel",
+        {"parent_key": "key", "parent_key2": "key2"},
+    )
 
 
 class InheritanceTestModel(SmallTestModel):

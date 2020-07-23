@@ -15,7 +15,7 @@
 """Used with SpannerAdminApi to manage Spanner schema updates."""
 
 import abc
-from typing import Iterable, List, Optional, Type, Dict
+from typing import Iterable, List, Optional, Type, Dict, Union, Any
 
 from spanner_orm import condition
 from spanner_orm import error
@@ -54,9 +54,25 @@ class CreateTable(SchemaUpdate):
             "{} {}".format(field.name, field.ddl())
             for field in self._model.fields.values()
         ]
+
+        # Note: Spanner supports multicolumn forgeign keys (hence the use of keys() & values())
+        relations = [
+            "CONSTRAINT {} FOREIGN KEY ({}) REFERENCES {} ({})".format(
+                name,
+                ", ".join(relation_obj._constraints.keys()),
+                relation_obj._destination_handle,
+                ", ".join(relation_obj._constraints.values()),
+            )
+            for name, relation_obj in self._model.relations.items()
+        ]
+
+        relations_ddl = (
+            "" if len(relations) == 0 else ", {}".format(", ".join(relations))
+        )
+
         index_ddl = "PRIMARY KEY ({})".format(", ".join(self._model.primary_keys))
-        statement = "CREATE TABLE {} ({}) {}".format(
-            self._model.table, ", ".join(fields), index_ddl
+        statement = "CREATE TABLE {} ({}{}) {}".format(
+            self._model.table, ", ".join(fields), relations_ddl, index_ddl
         )
 
         if self._model.interleaved:
@@ -386,6 +402,74 @@ class DropIndex(SchemaUpdate):
             raise error.SpannerError(
                 "Index {} is the primary index".format(self._index)
             )
+
+
+class AddForeignKeyConstraint(SchemaUpdate):
+    """Update for adding a foreign key constaint to an existing table."""
+
+    def __init__(
+        self,
+        table_name: str,
+        relation_name: str,
+        destination_handle: Union[Type[Any], str],
+        constraints: Dict[str, str],
+    ):
+        self._table = table_name
+        self._relation_name = relation_name
+        self._destination_handle = destination_handle
+        self._constraints = constraints
+
+    def ddl(self) -> str:
+        return "ALTER TABLE {} ADD CONSTRAINT {} FOREIGN KEY ({}) REFERENCES {} ({})".format(
+            self._table,
+            self._relation_name,
+            ", ".join(self._constraints.keys()),
+            self._destination_handle,
+            ", ".join(self._constraints.values()),
+        )
+
+    def validate(self) -> None:
+        model1_ = metadata.SpannerMetadata.model(self._table)
+        model2_ = metadata.SpannerMetadata.model(self._destination_handle)
+        if not model1_:
+            raise error.SpannerError("Table {} does not exist".format(self._table))
+
+        if not model2_:
+            raise error.SpannerError(
+                "Table {} does not exist".format(self._destination_handle)
+            )
+
+        for model1_col in self._constraints.keys():
+            if model1_col not in model1_.fields:
+                raise error.SpannerError(
+                    "Column {} does not exist on {}".format(model1_col, self._table)
+                )
+
+        for model2_col in self._constraints.values():
+            if model2_col not in model2_.fields:
+                raise error.SpannerError(
+                    "Column {} does not exist on {}".format(
+                        model2_col, self._destination_handle
+                    )
+                )
+
+
+class DropForeignKeyConstraint(SchemaUpdate):
+    """Update for dropping a foreign key constaint from an existing table"""
+
+    def __init__(self, table_name: str, relation_name: str):
+        self._table = table_name
+        self._relation_name = relation_name
+
+    def ddl(self) -> str:
+        return "ALTER TABLE {} DROP CONSTRAINT {}".format(
+            self._table, self._relation_name
+        )
+
+    def validate(self) -> None:
+        model_ = metadata.SpannerMetadata.model(self._table)
+        if not model_:
+            raise error.SpannerError("Table {} does not exist".format(self._table))
 
 
 class NoUpdate(SchemaUpdate):
