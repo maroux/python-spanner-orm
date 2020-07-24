@@ -30,7 +30,7 @@ def generate(args: Any) -> None:
 def migrate(args: Any) -> None:
     connection = api.SpannerConnection(args.instance, args.database)
     executor = migration_executor.MigrationExecutor(connection, args.directory)
-    executor.migrate(args.name)
+    executor.migrate(args.name, args.fake)
 
 
 def show_migrations(args: Any) -> None:
@@ -64,6 +64,14 @@ def main(as_module: bool = False) -> None:
     )
     migrate_parser.add_argument("--name", help="Stop migrating after this migration")
     migrate_parser.add_argument("--directory")
+    migrate_parser.add_argument(
+        "--fake",
+        type=bool,
+        const=True,
+        default=False,
+        nargs="?",  # Allows users to pass the flag without specifying a value (i.e. --fake automatically means true)
+        help="Set migrations status to true without actually executing the migrations",
+    )
     migrate_parser.add_argument("instance", help="Name of Spanner instance")
     migrate_parser.add_argument("database", help="Name of Spanner database")
     migrate_parser.set_defaults(execute=migrate)
