@@ -16,3 +16,12 @@ def upgrade() -> spanner_orm.NoUpdate:
 # Returns a SchemaUpdate object that tells how to roll back the changes
 def downgrade() -> spanner_orm.NoUpdate:
   return spanner_orm.NoUpdate()
+
+# Note: upgrade/downgrade can also return a list of SchemaUpdates
+#       which will each be executed in sequential order
+
+# def upgrade():
+#  return [spanner_orm.NoUpdate(), spanner_orm.NoUpdate()]
+
+# def downgrade():
+#  return [spanner_orm.NoUpdate(), spanner_orm.NoUpdate()]

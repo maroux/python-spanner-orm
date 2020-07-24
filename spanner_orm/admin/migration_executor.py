@@ -79,14 +79,18 @@ class MigrationExecutor:
             _logger.info(msg)
 
             if not fake:
-                schema_update = migration_.upgrade()
-                if not isinstance(schema_update, update.SchemaUpdate):
+                schema_updates = migration_.upgrade()
+                if isinstance(schema_updates, update.SchemaUpdate):
+                    schema_updates.execute()
+                elif isinstance(schema_updates, (list, update.SchemaUpdate)):
+                    for schema_update in schema_updates:
+                        schema_update.execute()
+                else:
                     raise error.SpannerError(
-                        "Migration {} did not return a SchemaUpdate".format(
+                        "Migration {} did not return a SchemaUpdate or list of SchemaUpdates".format(
                             migration_.migration_id
                         )
                     )
-                schema_update.execute()
 
             self._update_status(migration_.migration_id, True)
         self._hangup()
@@ -134,14 +138,18 @@ class MigrationExecutor:
             msg = "Processing migration {}".format(migration_.migration_id)
             print(msg)
             _logger.info(msg)
-            schema_update = migration_.downgrade()
-            if not isinstance(schema_update, update.SchemaUpdate):
+            schema_updates = migration_.downgrade()
+            if isinstance(schema_updates, update.SchemaUpdate):
+                schema_updates.execute()
+            elif isinstance(schema_updates, (list, update.SchemaUpdate)):
+                for schema_update in schema_updates:
+                    schema_update.execute()
+            else:
                 raise error.SpannerError(
-                    "Migration {} did not return a SchemaUpdate".format(
+                    "Migration {} did not return a SchemaUpdate or list of SchemaUpdates".format(
                         migration_.migration_id
                     )
                 )
-            schema_update.execute()
 
             self._update_status(migration_.migration_id, False)
         self._hangup()
