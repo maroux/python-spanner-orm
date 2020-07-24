@@ -17,8 +17,11 @@ def upgrade() -> spanner_orm.NoUpdate:
 def downgrade() -> spanner_orm.NoUpdate:
   return spanner_orm.NoUpdate()
 
-# Note: upgrade/downgrade can also return a list of SchemaUpdates
-#       which will each be executed in sequential order
+# Note: 
+# - upgrade/downgrade can also return a list of SchemaUpdates
+#   which will each be executed in sequential order
+# - The downgrade function should reverse the list of operations
+#   executed in the upgrade function
 
 # def upgrade():
 #  return [spanner_orm.NoUpdate(), spanner_orm.NoUpdate()]
