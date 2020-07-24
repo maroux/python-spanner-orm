@@ -100,6 +100,8 @@ DropColumn = update_module.DropColumn
 AlterColumn = update_module.AlterColumn
 CreateIndex = update_module.CreateIndex
 DropIndex = update_module.DropIndex
+AddForeignKeyConstraint = update_module.AddForeignKeyConstraint
+DropForeignKeyConstraint = update_module.DropForeignKeyConstraint
 NoUpdate = update_module.NoUpdate
 model_creation_ddl = update_module.model_creation_ddl
 

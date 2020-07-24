@@ -61,6 +61,41 @@ class UpdateTest(unittest.TestCase):
             test_update.validate()
 
     @mock.patch("spanner_orm.admin.metadata.SpannerMetadata.model")
+    def test_add_foreign_key(self, get_model):
+        table_name1 = models.SmallTestModel.table
+        table_name2 = models.UnittestModel.table
+        get_model.side_effect = [models.SmallTestModel, models.UnittestModel]
+
+        fk_constraint = "FK_Testing"
+        key1 = "value_1"
+        key2 = "string"
+
+        test_update = update.AddForeignKeyConstraint(
+            table_name1, fk_constraint, table_name2, {key1: key2}
+        )
+        test_update.validate()
+        self.assertEqual(
+            test_update.ddl(),
+            "ALTER TABLE {} ADD CONSTRAINT {} FOREIGN KEY ({}) REFERENCES {} ({})".format(
+                table_name1, fk_constraint, key1, table_name2, key2
+            ),
+        )
+
+    @mock.patch("spanner_orm.admin.metadata.SpannerMetadata.model")
+    def test_drop_foreign_key(self, get_model):
+        table_name = models.SmallTestModel.table
+        get_model.return_value = models.SmallTestModel
+
+        fk_constraint = "FK_Testing"
+
+        test_update = update.DropForeignKeyConstraint(table_name, fk_constraint)
+        test_update.validate()
+        self.assertEqual(
+            test_update.ddl(),
+            "ALTER TABLE {} DROP CONSTRAINT {}".format(table_name, fk_constraint),
+        )
+
+    @mock.patch("spanner_orm.admin.metadata.SpannerMetadata.model")
     def test_create_table(self, get_model):
         get_model.return_value = None
         new_model = models.UnittestModel
@@ -97,6 +132,25 @@ class UpdateTest(unittest.TestCase):
             "child_key STRING(MAX) NOT NULL) "
             "PRIMARY KEY (key, child_key), "
             "INTERLEAVE IN PARENT SmallTestModel ON DELETE CASCADE"
+        )
+        self.assertEqual(test_update.ddl(), test_model_ddl)
+
+    @mock.patch("spanner_orm.admin.metadata.SpannerMetadata.model")
+    def test_create_table_foreign_keys(self, get_model):
+        get_model.return_value = None
+        new_model = models.RelationshipTestModel
+        test_update = update.CreateTable(new_model)
+        test_update.validate()
+        print(test_update.ddl())
+
+        test_model_ddl = (
+            "CREATE TABLE RelationshipTestModel ("
+            "parent_key STRING(MAX) NOT NULL, "
+            "child_key STRING(MAX) NOT NULL, "
+            "CONSTRAINT parent FOREIGN KEY (parent_key) REFERENCES spanner_orm.tests.models.SmallTestModel (key), "
+            "CONSTRAINT parents FOREIGN KEY (parent_key) REFERENCES spanner_orm.tests.models.SmallTestModel (key), "
+            "CONSTRAINT fk_multicolumn FOREIGN KEY (parent_key, parent_key2) REFERENCES spanner_orm.tests.models.SmallTestModel (key, key2)) "
+            "PRIMARY KEY (parent_key, child_key)"
         )
         self.assertEqual(test_update.ddl(), test_model_ddl)
 
