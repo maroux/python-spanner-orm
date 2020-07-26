@@ -14,7 +14,8 @@
 # limitations under the License.
 """Model for interacting with Spanner column schema table."""
 
-from typing import Type
+import re
+from typing import Type, Union
 
 from spanner_orm import error
 from spanner_orm import field
@@ -33,6 +34,9 @@ class ColumnSchema(schema.InformationSchema):
     is_nullable = field.Field(field.String)
     spanner_type = field.Field(field.String)
 
+    string_pattern = "^STRING\([0-9]+\)+$"
+    string_array_patter = "^ARRAY<STRING\([0-9]+\)>+$"
+
     @property
     def nullable(self) -> bool:
         return self.is_nullable == "YES"
@@ -43,6 +47,21 @@ class ColumnSchema(schema.InformationSchema):
             if self.spanner_type == field_type.ddl():
                 return field_type
 
+        if bool(re.match(self.string_pattern, self.spanner_type)):
+            return field.String
+        elif bool(re.match(self.string_array_patter, self.spanner_type)):
+            return field.StringArray
+
         raise error.SpannerError(
             "No corresponding Type for {}".format(self.spanner_type)
         )
+
+    @property
+    def size(self) -> Union[None, int]:
+        if bool(re.match(self.string_pattern, self.spanner_type)) or bool(
+            re.match(self.string_array_patter, self.spanner_type)
+        ):
+            # Extract digits from string (i.e. STRING(50) -> 50)
+            return int("".join(filter(str.isdigit, self.spanner_type)))
+        else:
+            return None
