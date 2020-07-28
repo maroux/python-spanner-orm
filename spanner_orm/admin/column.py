@@ -21,6 +21,9 @@ from spanner_orm import error
 from spanner_orm import field
 from spanner_orm.admin import schema
 
+_string_pattern = r"^STRING\([0-9]+\)+$"
+_string_array_patter = r"^ARRAY<STRING\([0-9]+\)>+$"
+
 
 class ColumnSchema(schema.InformationSchema):
     """Model for interacting with Spanner column schema table."""
@@ -34,9 +37,6 @@ class ColumnSchema(schema.InformationSchema):
     is_nullable = field.Field(field.String)
     spanner_type = field.Field(field.String)
 
-    string_pattern = "^STRING\([0-9]+\)+$"
-    string_array_patter = "^ARRAY<STRING\([0-9]+\)>+$"
-
     @property
     def nullable(self) -> bool:
         return self.is_nullable == "YES"
@@ -47,9 +47,9 @@ class ColumnSchema(schema.InformationSchema):
             if self.spanner_type == field_type.ddl():
                 return field_type
 
-        if bool(re.match(self.string_pattern, self.spanner_type)):
+        if bool(re.match(_string_pattern, self.spanner_type)):
             return field.String
-        elif bool(re.match(self.string_array_patter, self.spanner_type)):
+        elif bool(re.match(_string_array_patter, self.spanner_type)):
             return field.StringArray
 
         raise error.SpannerError(
@@ -58,8 +58,8 @@ class ColumnSchema(schema.InformationSchema):
 
     @property
     def size(self) -> Union[None, int]:
-        if bool(re.match(self.string_pattern, self.spanner_type)) or bool(
-            re.match(self.string_array_patter, self.spanner_type)
+        if bool(re.match(_string_pattern, self.spanner_type)) or bool(
+            re.match(_string_array_patter, self.spanner_type)
         ):
             # Extract digits from string (i.e. STRING(50) -> 50)
             return int("".join(filter(str.isdigit, self.spanner_type)))
