@@ -15,7 +15,7 @@
 """Helps build SQL for complex Spanner queries."""
 
 import abc
-from typing import Any, Dict, Iterable, List, Tuple, Type
+from typing import Any, Dict, Iterable, List, Tuple, Type, cast
 
 from spanner_orm import condition
 from spanner_orm import error
@@ -162,6 +162,7 @@ class SelectQuery(SpannerQuery):
     def __init__(self, model: Type[Any], conditions: Iterable[condition.Condition]):
         self._model = model
         self._conditions = conditions
+        self._columns = model.columns
         self._joins = self._segments(condition.Segment.JOIN)
         self._subqueries = [
             _SelectSubQuery(join.destination, join.conditions)
@@ -175,9 +176,16 @@ class SelectQuery(SpannerQuery):
 
     def _select(self) -> Tuple[str, Dict[str, Any], Dict[str, Any]]:
         parameters, types = {}, {}
+        selects = self._segments(condition.Segment.SELECT)
+        if selects:
+            if len(selects) != 1:
+                raise error.SpannerError("Only one select column condition may be specified")
+            select_columns = cast(condition.SelectColumnsCondition, selects[0])
+            self._columns = select_columns.columns
+
         columns = [
             "{alias}.{column}".format(alias=self._model.column_prefix, column=column)
-            for column in self._model.columns
+            for column in self._columns
         ]
         for subquery in self._subqueries:
             subquery.param_offset = self._next_param_index()
@@ -197,8 +205,8 @@ class SelectQuery(SpannerQuery):
 
     def _process_row(self, row: List[Any]) -> Type[Any]:
         """Parses a row of results from a Spanner query based on the conditions."""
-        values = dict(zip(self._model.columns, row))
-        join_values = row[len(self._model.columns) :]
+        values = dict(zip(self._columns, row))
+        join_values = row[len(self._columns) :]
         for join, subquery, join_value in zip(
             self._joins, self._subqueries, join_values
         ):
