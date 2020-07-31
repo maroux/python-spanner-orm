@@ -599,9 +599,9 @@ class InequalityCondition(NullableComparisonCondition):
 class SelectColumnsCondition(Condition):
     """Used to indicate which columns should be queried in a Spanner query."""
 
-    def __init__(self, columns: List[str]):
+    def __init__(self, columns: List[Union[field.Field, str]]):
         super().__init__()
-        self.columns = columns
+        self.columns = [c if isinstance(c, str) else c.name for c in columns]
 
     def _params(self) -> Dict[str, Any]:
         return {}
@@ -873,7 +873,7 @@ def order_by(*orderings: Tuple[Union[field.Field, str], OrderType]) -> OrderByCo
     return OrderByCondition(*orderings)
 
 
-def select_columns(columns: List[str]) -> SelectColumnsCondition:
+def select_columns(columns: List[Union[field.Field, str]]) -> SelectColumnsCondition:
     """Condition to limit which columns should be queried. Default is to query all columns.
     All the omitted fields will be set to None.
 
