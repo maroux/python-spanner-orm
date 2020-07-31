@@ -29,6 +29,7 @@ from google.cloud.spanner_v1.proto import type_pb2
 class Segment(enum.Enum):
     """The segment of the SQL query that a Condition belongs to."""
 
+    SELECT = 0
     FROM = 1
     JOIN = 2
     WHERE = 3
@@ -595,6 +596,33 @@ class InequalityCondition(NullableComparisonCondition):
         super().__init__("!=", "IS NOT", column, value)
 
 
+class SelectColumnsCondition(Condition):
+    """Used to indicate which columns should be queried in a Spanner query."""
+
+    def __init__(self, columns: List[str]):
+        super().__init__()
+        self.columns = columns
+
+    def _params(self) -> Dict[str, Any]:
+        return {}
+
+    def segment(self) -> Segment:
+        return Segment.SELECT
+
+    def _sql(self) -> str:
+        pass
+
+    def _types(self) -> Dict[str, type_pb2.Type]:
+        return {}
+
+    def _validate(self, model_class: Type[Any]) -> None:
+        for column in self.columns:
+            if column not in model_class.columns:
+                raise error.ValidationError(
+                    f"Invalid column name: {column} not in model class: {model_class}"
+                )
+
+
 def columns_equal(
     origin_column: str, dest_model_class: Type[Any], dest_column: str
 ) -> ColumnsEqualCondition:
@@ -843,3 +871,16 @@ def order_by(*orderings: Tuple[Union[field.Field, str], OrderType]) -> OrderByCo
     A Condition subclass that will be used in the query
   """
     return OrderByCondition(*orderings)
+
+
+def select_columns(columns: List[str]) -> SelectColumnsCondition:
+    """Condition to limit which columns should be queried. Default is to query all columns.
+    All the omitted fields will be set to None.
+
+  Args:
+    columns: Column names to query
+
+  Returns:
+    A Condition subclass that will be used in the query
+  """
+    return SelectColumnsCondition(columns)

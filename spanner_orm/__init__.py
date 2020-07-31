@@ -87,6 +87,7 @@ not_greater_than = condition.not_greater_than
 not_in_list = condition.not_in_list
 not_less_than = condition.not_less_than
 order_by = condition.order_by
+select_columns = condition.select_columns
 ORDER_ASC = condition.OrderType.ASC
 ORDER_DESC = condition.OrderType.DESC
 
