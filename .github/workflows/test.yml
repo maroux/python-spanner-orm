@@ -23,9 +23,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
-        run: |  
-          pip install wheel
-          python setup.py install
+        run: python setup.py install
 
       - name: Test
         run: python setup.py test
