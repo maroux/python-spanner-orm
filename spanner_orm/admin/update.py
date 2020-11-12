@@ -55,7 +55,7 @@ class CreateTable(SchemaUpdate):
             for field in self._model.fields.values()
         ]
 
-        # Note: Spanner supports multicolumn forgeign keys (hence the use of keys() & values())
+        # Note: Spanner supports multicolumn foreign keys (hence the use of keys() & values())
         relations = [
             "CONSTRAINT {} FOREIGN KEY ({}) REFERENCES {} ({})".format(
                 name,
@@ -64,6 +64,7 @@ class CreateTable(SchemaUpdate):
                 ", ".join(relation_obj._constraints.values()),
             )
             for name, relation_obj in self._model.relations.items()
+            if relation_obj.destination.interleaved != self._model
         ]
 
         relations_ddl = (
