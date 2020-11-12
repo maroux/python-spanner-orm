@@ -59,7 +59,7 @@ class ModelMetadata(object):
         self.relations = dict(relations or {})
         self.table = table or ""
 
-    def finalize(self) -> None:
+    def finalize(self, reregister_model: bool = False) -> None:
         """Finish generating metadata state.
 
     Some metadata depends on having all configuration data set before it can
@@ -83,6 +83,12 @@ class ModelMetadata(object):
 
         for _, relation in self.relations.items():
             relation.origin = self.model_class
+        if reregister_model:
+            try:
+                registry.model_registry().get(self.model_class)
+                registry.model_registry().remove(self.model_class)
+            except error.SpannerError:
+                pass
         registry.model_registry().register(self.model_class)
         self._finalized = True
 

@@ -39,7 +39,7 @@ class Registry(object):
         name_components = reversed(self._name_from_class(to_register).split("."))
         name = None
         for component in name_components:
-            name = name = "{}.{}".format(component, name) if name else component
+            name = "{}.{}".format(component, name) if name else component
             if name not in self._registered:
                 self._registered[name] = RegistryComponent()
             self._registered[name].add(to_register)
@@ -57,6 +57,20 @@ class Registry(object):
                 "Multiple classes match {}, add more specificity".format(name)
             )
         return self._registered[name].references[0]
+
+    def remove(self, name: Union[Type[Any], str]) -> None:
+        if isinstance(name, type):
+            name = self._name_from_class(name)
+
+        name_components = reversed(name.split("."))
+        name = None
+        for component in name_components:
+            name = "{}.{}".format(component, name) if name else component
+            if name not in self._registered:
+                raise error.SpannerError(
+                    "{} was not found, verify it has been registered".format(name)
+                )
+            del self._registered[name]
 
 
 _registry = Registry()
