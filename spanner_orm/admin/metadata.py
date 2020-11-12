@@ -62,7 +62,7 @@ class SpannerMetadata(object):
                 indexes=indexes[table_name],
                 model_class=klass,
             )
-            klass.meta.finalize()
+            klass.meta.finalize(reregister_model=True)
             models[table_name] = klass
 
         return models
