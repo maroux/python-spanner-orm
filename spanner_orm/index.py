@@ -35,18 +35,18 @@ class Index(object):
         column_ordering: Union[Dict[str, bool], bool] = None,
     ):
         """
-    Represents an index on the table
+        Represents an index on the table
 
-    :param columns: List of columns in the index
-    :param parent:
-    :param null_filtered: Should null values be filtered?
-    :param unique: Enforce unique constraint?
-    :param storing_columns: Additional columns to store with this index. This can help performance if fields are
-      accessed together
-    :param name: Name of the index (this may be used to customize default index name)
-    :param column_ordering: Map of column names to bool (True for ASC, and False for DESC) indicating order for the
-      field (defaults to ASC). For single column indexes, this can be a single bool value as well.
-    """
+        :param columns: List of columns in the index
+        :param parent:
+        :param null_filtered: Should null values be filtered?
+        :param unique: Enforce unique constraint?
+        :param storing_columns: Additional columns to store with this index. This can help performance if fields are
+          accessed together
+        :param name: Name of the index (this may be used to customize default index name)
+        :param column_ordering: Map of column names to bool (True for ASC, and False for DESC) indicating order for the
+          field (defaults to ASC). For single column indexes, this can be a single bool value as well.
+        """
         if not columns:
             raise error.ValidationError("An index must have at least one column")
         if isinstance(column_ordering, bool):
@@ -95,8 +95,8 @@ class Index(object):
     @property
     def column_ordering(self) -> Dict[str, bool]:
         """
-    Map of column name to order (True for ascending, False for descending)
-    """
+        Map of column name to order (True for ascending, False for descending)
+        """
         return self._column_ordering
 
     @property

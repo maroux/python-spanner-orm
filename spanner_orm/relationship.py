@@ -41,17 +41,17 @@ class Relationship(object):
     ):
         """Creates a ModelRelationship.
 
-    Args:
-      destination_handle: Destination model class or fully qualified class name
-        of the destination model
-      constraints: Dictionary where the keys are names of columns from the
-        origin model and the value for a key is the name of the column in the
-        destination model that the key should be equal to in order for there to
-        be a relationship from an origin model to the destination
-      is_parent: True if the destination is a parent table of the origin
-      single: True if the destination should be treated as a single object
-        instead of a list of objects
-    """
+        Args:
+          destination_handle: Destination model class or fully qualified class name
+            of the destination model
+          constraints: Dictionary where the keys are names of columns from the
+            origin model and the value for a key is the name of the column in the
+            destination model that the key should be equal to in order for there to
+            be a relationship from an origin model to the destination
+          is_parent: True if the destination is a parent table of the origin
+          single: True if the destination should be treated as a single object
+            instead of a list of objects
+        """
         self.origin = None
         self.name = None
         self._destination_handle = destination_handle

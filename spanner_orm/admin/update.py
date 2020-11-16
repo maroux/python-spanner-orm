@@ -204,8 +204,8 @@ class DropTable(SchemaUpdate):
 class AddColumn(SchemaUpdate):
     """Update for adding a column to an existing table.
 
-  Only supports adding nullable columns
-  """
+    Only supports adding nullable columns
+    """
 
     def __init__(self, table_name: str, column_name: str, field_: field.Field):
         self._table = table_name
@@ -260,8 +260,8 @@ class DropColumn(SchemaUpdate):
 class AlterColumn(SchemaUpdate):
     """Update for altering a column an existing table.
 
-  Only supports changing the nullability of a column
-  """
+    Only supports changing the nullability of a column
+    """
 
     def __init__(self, table_name: str, column_name: str, field_: field.Field):
         self._table = table_name

@@ -42,17 +42,17 @@ class SpannerReadApi(abc.ABC):
     ) -> CallableReturn:
         """Wraps read-only queries in a read transaction.
 
-    The callable will be executed with the read transaction (Snapshot from
-    the Spanner client library)passed to it as the first argument.
+        The callable will be executed with the read transaction (Snapshot from
+        the Spanner client library)passed to it as the first argument.
 
-    Args:
-      method: The method that will be run in the transaction
-      *args: Positional arguments that will be passed to `method`
-      **kwargs: Keyword arguments that will be passed to `method`
+        Args:
+          method: The method that will be run in the transaction
+          *args: Positional arguments that will be passed to `method`
+          **kwargs: Keyword arguments that will be passed to `method`
 
-    Returns:
-      The return value from `method` will be returned from this method
-    """
+        Returns:
+          The return value from `method` will be returned from this method
+        """
         with self._connection.snapshot(multi_use=True) as snapshot:
             return method(snapshot, *args, **kwargs)
 
@@ -70,20 +70,20 @@ class SpannerWriteApi(abc.ABC):
     ) -> CallableReturn:
         """Wraps read-write queries in a write transaction.
 
-    The callable will be executed with the write transaction passed to it as
-    the first argument. If the transaction aborts (usually because the data
-    the write operation depended on has changed since the start of the
-    transaction), the callable will continue to be retried until success or
-    30 seconds has passed.
+        The callable will be executed with the write transaction passed to it as
+        the first argument. If the transaction aborts (usually because the data
+        the write operation depended on has changed since the start of the
+        transaction), the callable will continue to be retried until success or
+        30 seconds has passed.
 
-    Args:
-      method: The method that will be run in the transaction
-      *args: Positional arguments that will be passed to `method`
-      **kwargs: Keyword arguments that will be passed to `method`
+        Args:
+          method: The method that will be run in the transaction
+          *args: Positional arguments that will be passed to `method`
+          **kwargs: Keyword arguments that will be passed to `method`
 
-    Returns:
-      The return value from `method` will be returned from this method
-    """
+        Returns:
+          The return value from `method` will be returned from this method
+        """
         return self._connection.run_in_transaction(method, *args, **kwargs)
 
 
@@ -148,9 +148,9 @@ def connect(
 
 def from_connection(connection: SpannerConnection, **kwargs) -> SpannerApi:
     """
-  Sets the global spanner_api from the provided connection.
-  :param kwargs: Additional keyword args to pass to SpannerApi class
-  """
+    Sets the global spanner_api from the provided connection.
+    :param kwargs: Additional keyword args to pass to SpannerApi class
+    """
     global _api
     _api = SpannerApi(connection, **kwargs)
     return _api

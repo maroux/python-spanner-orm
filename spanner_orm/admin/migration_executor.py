@@ -171,14 +171,14 @@ class MigrationExecutor:
     ) -> List[migration.Migration]:
         """Filters the list of migrations according to the desired conditions.
 
-    Args:
-      migrations: List of migrations to filter
-      migrated: Only add migrations whose migration status matches this flag
-      last_migration: Stop adding migrations to the list after this one is found
+        Args:
+          migrations: List of migrations to filter
+          migrated: Only add migrations whose migration status matches this flag
+          last_migration: Stop adding migrations to the list after this one is found
 
-    Returns:
-      List of filtered migrations
-    """
+        Returns:
+          List of filtered migrations
+        """
         filtered = []
         last_migration_found = False
         for migration_ in migrations:
