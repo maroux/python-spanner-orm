@@ -25,5 +25,8 @@ jobs:
       - name: Install Dependencies
         run: python setup.py install
 
+      - name: Format
+        run: black --check .
+
       - name: Test
         run: python setup.py test
