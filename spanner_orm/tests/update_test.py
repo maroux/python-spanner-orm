@@ -245,7 +245,6 @@ class UpdateTest(unittest.TestCase):
         new_model = models.RelationshipTestModel
         test_update = update.CreateTable(new_model)
         test_update.validate()
-        print(test_update.ddl())
 
         test_model_ddl = (
             "CREATE TABLE RelationshipTestModel ("
@@ -288,7 +287,6 @@ class UpdateTest(unittest.TestCase):
             },
         )
         test_update.validate()
-        print(test_update.ddl())
 
         test_model_ddl = (
             "CREATE TABLE RelationshipTestModel ("

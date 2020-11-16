@@ -129,7 +129,9 @@ class QueryTest(parameterized.TestCase):
         self.assertNotRegex(select_query.sql(), "ORDER BY")
 
     def test_query_select_fields(self):
-        select_query = self.select(condition.select_columns([models.UnittestModel.int_]))
+        select_query = self.select(
+            condition.select_columns([models.UnittestModel.int_])
+        )
 
         self.assertEqual(select_query.sql(), "SELECT table.int_ FROM table")
         self.assertEmpty(select_query.parameters())
