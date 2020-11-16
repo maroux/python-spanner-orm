@@ -17,7 +17,7 @@
 import abc
 from typing import Iterable, List, Optional, Type, Dict, Union, Any
 
-from spanner_orm import condition
+from spanner_orm import condition, relationship
 from spanner_orm import error
 from spanner_orm import field
 from spanner_orm import model
@@ -46,13 +46,49 @@ class SchemaUpdate(abc.ABC):
 class CreateTable(SchemaUpdate):
     """Update that allows creating a new table."""
 
-    def __init__(self, model_: Type[model.Model]):
-        self._model = model_
+    def __init__(
+        self,
+        model_: Optional[Type[model.Model]] = None,
+        table_name: Optional[str] = None,
+        primary_keys: Optional[List[str]] = None,
+        fields: Optional[Dict[str, field.Field]] = None,
+        relations: Optional[Dict[str, relationship.Relationship]] = None,
+        interleaved: Optional[Type["model.Model"]] = None,
+    ):
+        if not (
+            (model_ is not None)
+            ^ (
+                table_name is not None
+                and primary_keys is not None
+                and fields is not None
+            )
+        ):
+            raise error.SpannerError(
+                "Exactly one of: [model_], [table_name, primary_keys, fields is, relations] is required"
+            )
+        if model_ and (
+            table_name or primary_keys or fields or relations or interleaved
+        ):
+            raise error.SpannerError(
+                "Can not specify any other optional param if model_ is specified"
+            )
+
+        if model_:
+            self._table_name = model_.table
+            self._primary_keys = model_.primary_keys
+            self._fields = model_.fields
+            self._relations = model_.relations
+            self._interleaved = model_.interleaved
+        else:
+            self._table_name = table_name
+            self._primary_keys = primary_keys
+            self._fields = fields
+            self._relations = relations or {}
+            self._interleaved = interleaved
 
     def ddl(self) -> str:
         fields = [
-            "{} {}".format(field.name, field.ddl())
-            for field in self._model.fields.values()
+            "{} {}".format(field.name, field.ddl()) for field in self._fields.values()
         ]
 
         # Note: Spanner supports multicolumn foreign keys (hence the use of keys() & values())
@@ -63,47 +99,46 @@ class CreateTable(SchemaUpdate):
                 relation_obj._destination_handle,
                 ", ".join(relation_obj._constraints.values()),
             )
-            for name, relation_obj in self._model.relations.items()
-            if relation_obj.destination.interleaved != self._model
+            for name, relation_obj in self._relations.items()
+            if relation_obj.destination.interleaved is None
+            or relation_obj.destination.interleaved.table != self._table_name
         ]
 
         relations_ddl = (
             "" if len(relations) == 0 else ", {}".format(", ".join(relations))
         )
 
-        index_ddl = "PRIMARY KEY ({})".format(", ".join(self._model.primary_keys))
+        index_ddl = "PRIMARY KEY ({})".format(", ".join(self._primary_keys))
         statement = "CREATE TABLE {} ({}{}) {}".format(
-            self._model.table, ", ".join(fields), relations_ddl, index_ddl
+            self._table_name, ", ".join(fields), relations_ddl, index_ddl
         )
 
-        if self._model.interleaved:
+        if self._interleaved:
             statement += ", INTERLEAVE IN PARENT {parent} ON DELETE CASCADE".format(
-                parent=self._model.interleaved.table
+                parent=self._interleaved.table
             )
         return statement
 
     def validate(self) -> None:
-        if not self._model.table:
+        if not self._table_name:
             raise error.SpannerError("New table has no name")
 
-        existing_model = metadata.SpannerMetadata.model(self._model.table)
+        existing_model = metadata.SpannerMetadata.model(self._table_name)
         if existing_model:
-            raise error.SpannerError(
-                "Table {} already exists".format(self._model.table)
-            )
+            raise error.SpannerError("Table {} already exists".format(self._table_name))
 
-        if self._model.interleaved:
+        if self._interleaved:
             self._validate_parent()
 
         self._validate_primary_keys()
 
     def _validate_parent(self) -> None:
         """Verifies that the parent table information is valid."""
-        parent_primary_keys = self._model.interleaved.primary_keys
-        primary_keys = self._model.primary_keys
+        parent_primary_keys = self._interleaved.primary_keys
+        primary_keys = self._primary_keys
 
         message = "Table {} is not a child of parent table {}".format(
-            self._model.table, self._model.interleaved.table
+            self._table_name, self._interleaved.table
         )
         for parent_key, key in zip(parent_primary_keys, primary_keys):
             if parent_key != key:
@@ -113,16 +148,16 @@ class CreateTable(SchemaUpdate):
 
     def _validate_primary_keys(self) -> None:
         """Verifies that the primary key data is valid."""
-        if not self._model.primary_keys:
+        if not self._primary_keys:
             raise error.SpannerError(
-                "Table {} has no primary key".format(self._model.table)
+                "Table {} has no primary key".format(self._table_name)
             )
 
-        for key in self._model.primary_keys:
-            if key not in self._model.fields:
+        for key in self._primary_keys:
+            if key not in self._fields:
                 raise error.SpannerError(
                     "Table {} column {} in primary key but not in schema".format(
-                        self._model.table, key
+                        self._table_name, key
                     )
                 )
 

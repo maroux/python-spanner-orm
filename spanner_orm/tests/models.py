@@ -30,11 +30,25 @@ class SmallTestModel(model.Model):
     index_1 = index.Index(["value_1"])
 
 
+class SmallTestParentModel(model.Model):
+    """Model class used for testing."""
+
+    __table__ = "SmallTestParentModel"
+    key = field.Field(field.String, primary_key=True)
+    value_1 = field.Field(field.String)
+    value_2 = field.Field(field.String, nullable=True)
+    index_1 = index.Index(["value_1"])
+
+    children = relationship.Relationship(
+        "spanner_orm.tests.models.ChildTestModel", {"key": "key"}
+    )
+
+
 class ChildTestModel(model.Model):
     """Model class for testing interleaved tables."""
 
     __table__ = "ChildTestModel"
-    __interleaved__ = "SmallTestModel"
+    __interleaved__ = "SmallTestParentModel"
 
     key = field.Field(field.String, primary_key=True)
     child_key = field.Field(field.String, primary_key=True)
