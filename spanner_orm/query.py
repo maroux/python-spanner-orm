@@ -179,7 +179,9 @@ class SelectQuery(SpannerQuery):
         selects = self._segments(condition.Segment.SELECT)
         if selects:
             if len(selects) != 1:
-                raise error.SpannerError("Only one select column condition may be specified")
+                raise error.SpannerError(
+                    "Only one select column condition may be specified"
+                )
             select_columns = cast(condition.SelectColumnsCondition, selects[0])
             self._columns = select_columns.columns
 

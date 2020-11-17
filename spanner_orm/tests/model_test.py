@@ -32,7 +32,11 @@ class ModelTest(parameterized.TestCase):
         test_model.value_2 = "value_2"
         self.assertEqual(
             test_model.values,
-            {"key": "key", "value_1": "value_1", "value_2": "value_2",},
+            {
+                "key": "key",
+                "value_1": "value_1",
+                "value_2": "value_2",
+            },
         )
 
     def test_set_error_on_primary_key(self):
@@ -135,7 +139,7 @@ class ModelTest(parameterized.TestCase):
             _ = test_model.parent
 
     def test_interleaved(self):
-        self.assertEqual(models.ChildTestModel.interleaved, models.SmallTestModel)
+        self.assertEqual(models.ChildTestModel.interleaved, models.SmallTestParentModel)
 
     @mock.patch("spanner_orm.model.ModelApi.find")
     def test_reload(self, find):

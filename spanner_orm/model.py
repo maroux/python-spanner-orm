@@ -133,10 +133,10 @@ CallableReturn = TypeVar("CallableReturn")
 class ModelApi(metaclass=ModelMetaclass):
     """Implements class-level Spanner queries on top of ModelMetaclass.
 
-  Note: all methods in this class should only be called on subclasses of Model
-  that have associated tables. Violating this will cause an exception to be
-  raised.
-  """
+    Note: all methods in this class should only be called on subclasses of Model
+    that have associated tables. Violating this will cause an exception to be
+    raised.
+    """
 
     @classmethod
     def spanner_api(cls) -> api.SpannerApi:
@@ -151,17 +151,17 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> List["ModelObject"]:
         """Returns all objects of this type stored in Spanner.
 
-    Note: this method should only be called on subclasses of Model that have
-    a table associated with it. Violating this will cause an exception to be
-    raised.
+        Note: this method should only be called on subclasses of Model that have
+        a table associated with it. Violating this will cause an exception to be
+        raised.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
 
-    Returns:
-      A list of models, one per row in the associated Spanner table
-    """
+        Returns:
+          A list of models, one per row in the associated Spanner table
+        """
         args = [cls.table, cls.columns, spanner.KeySet(all_=True)]
         results = cls._execute_read(table_apis.find, transaction, args)
         return cls._results_to_models(results)
@@ -174,16 +174,16 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> int:
         """Returns the number of objects in Spanner that match the given conditions.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      *conditions: Instances of subclasses of Condition that help specify which
-        rows should be included in the count. The includes condition is not
-        allowed here
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          *conditions: Instances of subclasses of Condition that help specify which
+            rows should be included in the count. The includes condition is not
+            allowed here
 
-    Returns:
-      The integer result of the COUNT query
-    """
+        Returns:
+          The integer result of the COUNT query
+        """
         builder = query.CountQuery(cls, conditions)
         args = [builder.sql(), builder.parameters(), builder.types()]
         results = cls._execute_read(table_apis.sql_query, transaction, args)
@@ -197,19 +197,19 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> int:
         """Returns the number of objects in Spanner that match the given conditions.
 
-    Convenience method that generates equality conditions based on the keyword
-    arguments.
+        Convenience method that generates equality conditions based on the keyword
+        arguments.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      **constraints: Each key/value pair is turned into an equality condition:
-        the key is used as the column in the condition and the value is used as
-        the value to compare the column against in the query.
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          **constraints: Each key/value pair is turned into an equality condition:
+            the key is used as the column in the condition and the value is used as
+            the value to compare the column against in the query.
 
-    Returns:
-      The integer result of the COUNT query
-    """
+        Returns:
+          The integer result of the COUNT query
+        """
         conditions = []
         for column, value in constraints.items():
             if isinstance(value, list):
@@ -224,16 +224,16 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> Optional["ModelObject"]:
         """Retrieves an object from Spanner based on the provided key.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      **keys: The keys provided are the complete set of primary keys for this
-        table and the corresponding values make up the unique identifier of the
-        object being retrieved
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          **keys: The keys provided are the complete set of primary keys for this
+            table and the corresponding values make up the unique identifier of the
+            object being retrieved
 
-    Returns:
-      The requested object or None if no such object exists
-    """
+        Returns:
+          The requested object or None if no such object exists
+        """
         resources = cls.find_multi(transaction, [keys])
         return resources[0] if resources else None
 
@@ -245,17 +245,17 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> List["ModelObject"]:
         """Retrieves objects from Spanner based on the provided keys.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      keys: An iterable of dictionaries, each dictionary representing the set of
-        primary key values necessary to uniquely identify an object in this
-        table.
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          keys: An iterable of dictionaries, each dictionary representing the set of
+            primary key values necessary to uniquely identify an object in this
+            table.
 
-    Returns:
-      A list containing all requested objects that exist in the table (can be
-      an empty list)
-    """
+        Returns:
+          A list containing all requested objects that exist in the table (can be
+          an empty list)
+        """
         key_values = []
         for key in keys:
             key_values.append([key[column] for column in cls.primary_keys])
@@ -273,16 +273,16 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> List["ModelObject"]:
         """Retrieves objects from Spanner based on the provided conditions.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      *conditions: Instances of subclasses of Condition that help specify which
-        objects should be retrieved
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          *conditions: Instances of subclasses of Condition that help specify which
+            objects should be retrieved
 
-    Returns:
-      A list containing all requested objects that exist in the table (can be
-      an empty list)
-    """
+        Returns:
+          A list containing all requested objects that exist in the table (can be
+          an empty list)
+        """
         builder = query.SelectQuery(cls, conditions)
         args = [builder.sql(), builder.parameters(), builder.types()]
         results = cls._execute_read(table_apis.sql_query, transaction, args)
@@ -296,17 +296,17 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> List["ModelObject"]:
         """Retrieves objects from Spanner based on the provided constraints.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      **constraints: Each key/value pair is turned into an equality condition:
-        the key is used as the column in the condition and the value is used as
-        the value to compare the column against in the query.
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          **constraints: Each key/value pair is turned into an equality condition:
+            the key is used as the column in the condition and the value is used as
+            the value to compare the column against in the query.
 
-    Returns:
-      A list containing all requested objects that exist in the table (can be
-      an empty list)
-    """
+        Returns:
+          A list containing all requested objects that exist in the table (can be
+          an empty list)
+        """
         conditions = []
         for column, value in constraints.items():
             if isinstance(value, list):
@@ -343,15 +343,15 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> None:
         """Creates a row in Spanner based on the provided data.
 
-    Note: may throw an exception if bad values are provided.
+        Note: may throw an exception if bad values are provided.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      **kwargs: The keys are columns on the table and the values are the values
-        each column in the table should be set to. None and keys not present
-        indicate the corresponding column value should be NULL.
-    """
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          **kwargs: The keys are columns on the table and the values are the values
+            each column in the table should be set to. None and keys not present
+            indicate the corresponding column value should be NULL.
+        """
         cls._execute_write(table_apis.insert, transaction, [kwargs])
 
     @classmethod
@@ -370,11 +370,11 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> None:
         """Deletes rows from Spanner based on the provided models' primary keys.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      models: A list of models to be deleted from Spanner.
-    """
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          models: A list of models to be deleted from Spanner.
+        """
         key_list = []
         for model in models:
             key_list.append([getattr(model, column) for column in cls.primary_keys])
@@ -396,18 +396,18 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> None:
         """Writes rows to Spanner based on the provided model data.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      models: A list of models to be written to Spanner. If the _persisted flag
-        is set, by default we try to issue an UPDATE with values set for all
-        columns in the table. Otherwise, we try to issue an INSERT for all
-        columns in the table. If we try to INSERTa row that already exists (or
-        update one that is missing), an exception will be thrown.
-      force_write: If true, we use UPSERT instead of UPDATE/INSERT, so no
-        exceptions are thrown based on the presence or absence of data in
-        Spanner
-    """
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          models: A list of models to be written to Spanner. If the _persisted flag
+            is set, by default we try to issue an UPDATE with values set for all
+            columns in the table. Otherwise, we try to issue an INSERT for all
+            columns in the table. If we try to INSERTa row that already exists (or
+            update one that is missing), an exception will be thrown.
+          force_write: If true, we use UPSERT instead of UPDATE/INSERT, so no
+            exceptions are thrown based on the presence or absence of data in
+            Spanner
+        """
         work = collections.defaultdict(list)
         for model in models:
             value = {column: getattr(model, column) for column in cls.columns}
@@ -430,14 +430,14 @@ class ModelApi(metaclass=ModelMetaclass):
     ) -> None:
         """Updates a row in Spanner based on the provided data.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-      **kwargs: The keys are columns on the table and the values are the values
-        each column in the table should be set to. None indicates indicate the
-        corresponding column value should be NULL and not present keys indicate
-        the corresponding column value should not be changed.
-    """
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+          **kwargs: The keys are columns on the table and the values are the values
+            each column in the table should be set to. None indicates indicate the
+            corresponding column value should be NULL and not present keys indicate
+            the corresponding column value should not be changed.
+        """
         cls._execute_write(table_apis.update, transaction, [kwargs])
 
     @classmethod
@@ -544,17 +544,17 @@ class Model(ModelApi):
     def values(self) -> Dict[str, Any]:
         """Gets all attributes.
 
-    Returns:
-      Dictionary mapping from attribute name to value.
-    """
+        Returns:
+          Dictionary mapping from attribute name to value.
+        """
         return {key: getattr(self, key) for key in self._columns}
 
     def changes(self) -> Dict[str, Any]:
         """Gets all attributes that have been updated since object creation.
 
-    Returns:
-      Dictionary mapping from changed attribute name to new value.
-    """
+        Returns:
+          Dictionary mapping from changed attribute name to new value.
+        """
         values = self.values
         return {
             key: values[key]
@@ -565,10 +565,10 @@ class Model(ModelApi):
     def delete(self, transaction: spanner_transaction.Transaction = None) -> None:
         """Deletes this object from the Spanner database.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
-    """
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
+        """
         key = [getattr(self, column) for column in self._primary_keys]
         keyset = spanner.KeySet([key])
 
@@ -582,11 +582,11 @@ class Model(ModelApi):
     def pkey(self) -> Dict[str, Any]:
         """Gets the primary key of this object.
 
-    Returns:
-      Dictionary mapping from primary key attribute name to values. Note: this
-      dictionary can be used with Model.find to return the updated version of
-      this object from Spanner.
-    """
+        Returns:
+          Dictionary mapping from primary key attribute name to values. Note: this
+          dictionary can be used with Model.find to return the updated version of
+          this object from Spanner.
+        """
         return {key: self.values[key] for key in self._primary_keys}
 
     def reload(
@@ -594,15 +594,15 @@ class Model(ModelApi):
     ) -> Optional["Model"]:
         """Refreshes this object with information from Spanner.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
 
-    Returns:
-      This object updated with the appropriate values if information was found
-      in Spanner, or None if no information was found (object was deleted or
-      never was persisted)
-    """
+        Returns:
+          This object updated with the appropriate values if information was found
+          in Spanner, or None if no information was found (object was deleted or
+          never was persisted)
+        """
         updated_object = self._metaclass.find(transaction, **self.pkey())
         if updated_object is None:
             return None
@@ -621,17 +621,17 @@ class Model(ModelApi):
     def save(self, transaction: spanner_transaction.Transaction = None) -> "Model":
         """Persists this object to Spanner.
 
-    Note: if the _persisted flag doesn't match whether this object is actually
-    stored in Spanner, an exception may be thrown due to using the wrong
-    API.
+        Note: if the _persisted flag doesn't match whether this object is actually
+        stored in Spanner, an exception may be thrown due to using the wrong
+        API.
 
-    Args:
-      transaction: The existing transaction to use, or None to start a new
-        transaction
+        Args:
+          transaction: The existing transaction to use, or None to start a new
+            transaction
 
-    Returns:
-      The current object
-    """
+        Returns:
+          The current object
+        """
         if self._persisted:
             changed_values = self.changes()
             if changed_values:

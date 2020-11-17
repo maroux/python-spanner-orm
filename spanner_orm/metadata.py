@@ -62,12 +62,12 @@ class ModelMetadata(object):
     def finalize(self, reregister_model: bool = False) -> None:
         """Finish generating metadata state.
 
-    Some metadata depends on having all configuration data set before it can
-    be calculated--the primary index, for example, needs all fields to be added
-    before it can be calculated. This method is called to indicate that all
-    relevant state has been added and the calculation of the final data should
-    now happen.
-    """
+        Some metadata depends on having all configuration data set before it can
+        be calculated--the primary index, for example, needs all fields to be added
+        before it can be calculated. This method is called to indicate that all
+        relevant state has been added and the calculation of the final data should
+        now happen.
+        """
         if self._finalized:
             raise error.SpannerError("Metadata was already finalized")
         sorted_fields = list(sorted(self.fields.values(), key=lambda f: f.position))

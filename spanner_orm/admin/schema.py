@@ -24,8 +24,8 @@ from spanner_orm.admin import api
 class InformationSchema(model.Model):
     """Base model for Spanner INFORMATION_SCHEMA tables.
 
-  Note: Writes are disallowed and AdminApi is used for reads.
-  """
+    Note: Writes are disallowed and AdminApi is used for reads.
+    """
 
     @classmethod
     def spanner_api(cls) -> api.SpannerAdminApi:
