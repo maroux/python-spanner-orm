@@ -361,9 +361,9 @@ class QueryTest(parameterized.TestCase):
 
     def test_annotate(self):
         select_query = self.select(
-            condition.annotate_field("float_ * float_", "float_squared")
+            condition.annotate_field("COS(float_)", "cosine")
         )
-        expected_sql = r"float_ \* float_ AS float_squared"
+        expected_sql = r"COS\(float_\) AS cosine"
         self.assertRegex(select_query.sql(), expected_sql)
 
 
