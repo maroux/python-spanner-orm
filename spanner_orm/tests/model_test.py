@@ -32,11 +32,7 @@ class ModelTest(parameterized.TestCase):
         test_model.value_2 = "value_2"
         self.assertEqual(
             test_model.values,
-            {
-                "key": "key",
-                "value_1": "value_1",
-                "value_2": "value_2",
-            },
+            {"key": "key", "value_1": "value_1", "value_2": "value_2",},
         )
 
     def test_set_error_on_primary_key(self):
@@ -208,6 +204,12 @@ class ModelTest(parameterized.TestCase):
         self.assertEqual(transaction, mock_transaction)
         self.assertEqual(table, models.SmallTestModel.table)
         self.assertEqual(keyset.keys, [[model.key]])
+
+    def test_create_annotated_fields(self):
+        test_model = models.SmallTestModel(
+            {"key": "key", "value_1": "value", "extra_field": "value"}
+        )
+        self.assertEqual(test_model.extra_field, "value")
 
 
 if __name__ == "__main__":

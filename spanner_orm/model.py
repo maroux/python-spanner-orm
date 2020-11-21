@@ -507,6 +507,10 @@ class Model(ModelApi):
             if relation in values:
                 self.__dict__[relation] = values[relation]
 
+        for k, v in values.items():
+            if k not in self._columns and k not in self._relations:
+                self.__dict__[k] = v
+
     def __setattr__(self, name: str, value: Any) -> None:
         if name in self._relations:
             raise AttributeError(name)

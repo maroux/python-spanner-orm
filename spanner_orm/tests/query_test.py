@@ -359,6 +359,13 @@ class QueryTest(parameterized.TestCase):
             {"int_0": field.Integer.grpc_type(), "int_1": field.Integer.grpc_type()},
         )
 
+    def test_annotate(self):
+        select_query = self.select(
+            condition.annotate_field("float_ * float_", "float_squared")
+        )
+        expected_sql = r"float_ \* float_ AS float_squared"
+        self.assertRegex(select_query.sql(), expected_sql)
+
 
 if __name__ == "__main__":
     logging.basicConfig()

@@ -15,16 +15,19 @@
 """Helps build SQL for complex Spanner queries."""
 
 import abc
-from typing import Any, Dict, Iterable, List, Tuple, Type, cast
+from typing import Any, Dict, Iterable, List, Tuple, Type, cast, TYPE_CHECKING
 
 from spanner_orm import condition
 from spanner_orm import error
+
+if TYPE_CHECKING:
+    from spanner_orm import Model
 
 
 class SpannerQuery(abc.ABC):
     """Helps build SQL for complex Spanner queries."""
 
-    def __init__(self, model: Type[Any], conditions: Iterable[condition.Condition]):
+    def __init__(self, model: Type["Model"], conditions: Iterable[condition.Condition]):
         self.param_offset = 0
         self._model = model
         self._conditions = conditions
@@ -140,7 +143,7 @@ class SpannerQuery(abc.ABC):
 class CountQuery(SpannerQuery):
     """Handles COUNT Spanner queries."""
 
-    def __init__(self, model: Type[Any], conditions: Iterable[condition.Condition]):
+    def __init__(self, model: Type["Model"], conditions: Iterable[condition.Condition]):
         super().__init__(model, conditions)
         for c in conditions:
             if c.segment() not in [condition.Segment.WHERE, condition.Segment.FROM]:
@@ -159,10 +162,11 @@ class CountQuery(SpannerQuery):
 class SelectQuery(SpannerQuery):
     """Handles SELECT Spanner queries."""
 
-    def __init__(self, model: Type[Any], conditions: Iterable[condition.Condition]):
+    def __init__(self, model: Type["Model"], conditions: Iterable[condition.Condition]):
         self._model = model
         self._conditions = conditions
         self._columns = model.columns
+        self._additional_fields = []
         self._joins = self._segments(condition.Segment.JOIN)
         self._subqueries = [
             _SelectSubQuery(join.destination, join.conditions)
@@ -177,18 +181,27 @@ class SelectQuery(SpannerQuery):
     def _select(self) -> Tuple[str, Dict[str, Any], Dict[str, Any]]:
         parameters, types = {}, {}
         selects = self._segments(condition.Segment.SELECT)
-        if selects:
-            if len(selects) != 1:
+        select_columns = [
+            select
+            for select in selects
+            if isinstance(select, condition.SelectColumnsCondition)
+        ]
+        if select_columns:
+            if len(select_columns) != 1:
                 raise error.SpannerError(
                     "Only one select column condition may be specified"
                 )
-            select_columns = cast(condition.SelectColumnsCondition, selects[0])
+            select_columns = cast(condition.SelectColumnsCondition, select_columns[0])
             self._columns = select_columns.columns
 
-        columns = [
-            "{alias}.{column}".format(alias=self._model.column_prefix, column=column)
-            for column in self._columns
+        columns = [f"{self._model.column_prefix}.{column}" for column in self._columns]
+        annotate_columns = [
+            select
+            for select in selects
+            if isinstance(select, condition.AnnotateFieldCondition)
         ]
+        columns += [annotate.sql() for annotate in annotate_columns]
+        self._additional_fields = [annotate.field for annotate in annotate_columns]
         for subquery in self._subqueries:
             subquery.param_offset = self._next_param_index()
             columns.append("ARRAY({subquery})".format(subquery=subquery.sql()))
@@ -207,8 +220,8 @@ class SelectQuery(SpannerQuery):
 
     def _process_row(self, row: List[Any]) -> Type[Any]:
         """Parses a row of results from a Spanner query based on the conditions."""
-        values = dict(zip(self._columns, row))
-        join_values = row[len(self._columns) :]
+        values = dict(zip(self._columns + self._additional_fields, row))
+        join_values = row[len(self._columns + self._additional_fields) :]
         for join, subquery, join_value in zip(
             self._joins, self._subqueries, join_values
         ):
