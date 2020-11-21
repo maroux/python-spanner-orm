@@ -360,11 +360,21 @@ class QueryTest(parameterized.TestCase):
         )
 
     def test_annotate(self):
-        select_query = self.select(
-            condition.annotate_field("COS(float_)", "cosine")
-        )
+        select_query = self.select(condition.annotate_field("COS(float_)", "cosine"))
         expected_sql = r"COS\(float_\) AS cosine"
         self.assertRegex(select_query.sql(), expected_sql)
+
+        select_query = self.select(
+            condition.select_columns([models.UnittestModel.int_]),
+            condition.annotate_field("CAST(MOD(int_, 2) AS BOOL)", "is_odd"),
+        )
+
+        self.assertEqual(
+            select_query.sql(),
+            "SELECT table.int_, CAST(MOD(int_, 2) AS BOOL) AS is_odd FROM table",
+        )
+        self.assertEmpty(select_query.parameters())
+        self.assertEmpty(select_query.types())
 
 
 if __name__ == "__main__":
