@@ -209,6 +209,12 @@ class ModelTest(parameterized.TestCase):
         self.assertEqual(table, models.SmallTestModel.table)
         self.assertEqual(keyset.keys, [[model.key]])
 
+    def test_create_raw_fields(self):
+        test_model = models.SmallTestModel(
+            {"key": "key", "value_1": "value", "extra_field": "value"}
+        )
+        self.assertEqual(test_model.extra_field, "value")
+
 
 if __name__ == "__main__":
     logging.basicConfig()

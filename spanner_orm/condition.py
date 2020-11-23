@@ -623,6 +623,33 @@ class SelectColumnsCondition(Condition):
                 )
 
 
+class RawFieldCondition(Condition):
+    """Used to add additional raw fields in a Spanner query."""
+
+    def __init__(self, expr: str, field_name: str):
+        super().__init__()
+        self.expr = expr
+        self.field = field_name
+
+    def _params(self) -> Dict[str, Any]:
+        return {}
+
+    def segment(self) -> Segment:
+        return Segment.SELECT
+
+    def _sql(self) -> str:
+        return f"{self.expr} AS {self.field}"
+
+    def _types(self) -> Dict[str, type_pb2.Type]:
+        return {}
+
+    def _validate(self, model_class: Type[Any]) -> None:
+        if self.field in model_class.columns:
+            raise error.ValidationError(
+                f"Invalid alias name: {self.field} already in in model class: {model_class}"
+            )
+
+
 def columns_equal(
     origin_column: str, dest_model_class: Type[Any], dest_column: str
 ) -> ColumnsEqualCondition:
@@ -884,3 +911,19 @@ def select_columns(columns: List[Union[field.Field, str]]) -> SelectColumnsCondi
       A Condition subclass that will be used in the query
     """
     return SelectColumnsCondition(columns)
+
+
+def raw_field(expr: str, field_name: str) -> RawFieldCondition:
+    """Condition to include additional raw fields in objects. This may be used to add
+      Spanner functions and use their outputs. For example, expr = SUBSTR(s, 0, 2), alias = sub_s
+      will add an additional attribute on the object named `sub_s` which will be a substring
+      as evaluated by Spanner.
+
+    Args:
+      expr: Expression which can be evaluated by Spanner. May use column names.
+      field_name: Name of the field
+
+    Returns:
+      A Condition subclass that will be used in the query
+    """
+    return RawFieldCondition(expr, field_name)

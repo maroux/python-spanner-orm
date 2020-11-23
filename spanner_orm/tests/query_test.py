@@ -359,6 +359,23 @@ class QueryTest(parameterized.TestCase):
             {"int_0": field.Integer.grpc_type(), "int_1": field.Integer.grpc_type()},
         )
 
+    def test_raw(self):
+        select_query = self.select(condition.raw_field("COS(float_)", "cosine"))
+        expected_sql = r"COS\(float_\) AS cosine"
+        self.assertRegex(select_query.sql(), expected_sql)
+
+        select_query = self.select(
+            condition.select_columns([models.UnittestModel.int_]),
+            condition.raw_field("CAST(MOD(int_, 2) AS BOOL)", "is_odd"),
+        )
+
+        self.assertEqual(
+            select_query.sql(),
+            "SELECT table.int_, CAST(MOD(int_, 2) AS BOOL) AS is_odd FROM table",
+        )
+        self.assertEmpty(select_query.parameters())
+        self.assertEmpty(select_query.types())
+
 
 if __name__ == "__main__":
     logging.basicConfig()
