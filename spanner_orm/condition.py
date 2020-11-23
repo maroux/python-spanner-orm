@@ -623,8 +623,8 @@ class SelectColumnsCondition(Condition):
                 )
 
 
-class AnnotateFieldCondition(Condition):
-    """Used to annotate additional fields in a Spanner query."""
+class RawFieldCondition(Condition):
+    """Used to raw additional fields in a Spanner query."""
 
     def __init__(self, expr: str, field_name: str):
         super().__init__()
@@ -913,8 +913,8 @@ def select_columns(columns: List[Union[field.Field, str]]) -> SelectColumnsCondi
     return SelectColumnsCondition(columns)
 
 
-def annotate_field(expr: str, field_name: str) -> AnnotateFieldCondition:
-    """Condition to annotate objects with additional fields. This may be used to add
+def raw_field(expr: str, field_name: str) -> RawFieldCondition:
+    """Condition to raw objects with additional fields. This may be used to add
       Spanner functions and use their outputs. For example, expr = SUBSTR(s, 0, 2), alias = sub_s
       will add an additional attribute on the object named `sub_s` which will be a substring
       as evaluated by Spanner.
@@ -926,4 +926,4 @@ def annotate_field(expr: str, field_name: str) -> AnnotateFieldCondition:
     Returns:
       A Condition subclass that will be used in the query
     """
-    return AnnotateFieldCondition(expr, field_name)
+    return RawFieldCondition(expr, field_name)

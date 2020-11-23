@@ -195,13 +195,13 @@ class SelectQuery(SpannerQuery):
             self._columns = select_columns.columns
 
         columns = [f"{self._model.column_prefix}.{column}" for column in self._columns]
-        annotate_columns = [
+        raw_columns = [
             select
             for select in selects
-            if isinstance(select, condition.AnnotateFieldCondition)
+            if isinstance(select, condition.RawFieldCondition)
         ]
-        columns += [annotate.sql() for annotate in annotate_columns]
-        self._additional_fields = [annotate.field for annotate in annotate_columns]
+        columns += [raw.sql() for raw in raw_columns]
+        self._additional_fields = [raw.field for raw in raw_columns]
         for subquery in self._subqueries:
             subquery.param_offset = self._next_param_index()
             columns.append("ARRAY({subquery})".format(subquery=subquery.sql()))
