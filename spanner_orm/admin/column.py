@@ -23,6 +23,7 @@ from spanner_orm.admin import schema
 
 _string_pattern = re.compile(r"^STRING\([0-9]+\)+$")
 _string_array_pattern = re.compile(r"^ARRAY<STRING\([0-9]+\)>+$")
+_bytes_pattern = re.compile(r"^BYTES\([0-9]+\)+$")
 
 
 class ColumnSchema(schema.InformationSchema):
@@ -51,6 +52,8 @@ class ColumnSchema(schema.InformationSchema):
             return field.String
         elif bool(_string_array_pattern.match(self.spanner_type)):
             return field.StringArray
+        elif bool(_bytes_pattern.match(self.spanner_type)):
+            return field.Bytes
 
         raise error.SpannerError(
             "No corresponding Type for {}".format(self.spanner_type)
