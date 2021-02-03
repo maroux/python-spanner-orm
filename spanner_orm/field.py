@@ -185,6 +185,7 @@ class String(FieldType):
         if not isinstance(value, str):
             raise error.ValidationError("{} is not of type str".format(value))
 
+
 class Bytes(FieldType):
     """Represents a bytes type."""
 
