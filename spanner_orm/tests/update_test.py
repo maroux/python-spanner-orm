@@ -110,6 +110,8 @@ class UpdateTest(unittest.TestCase):
             " timestamp TIMESTAMP NOT NULL,"
             " timestamp_2 TIMESTAMP OPTIONS (allow_commit_timestamp=true),"
             " date DATE,"
+            " bytes_ BYTES(MAX),"
+            " bytes_2 BYTES(2048),"
             " bool_array ARRAY<BOOL>,"
             " int_array ARRAY<INT64>,"
             " float_array ARRAY<FLOAT64>,"
@@ -117,6 +119,7 @@ class UpdateTest(unittest.TestCase):
             " string_array ARRAY<STRING(MAX)>,"
             " string_array_2 ARRAY<STRING(50)>) PRIMARY KEY (int_, float_, string)"
         )
+
         self.assertEqual(test_update.ddl(), test_model_ddl)
 
     @mock.patch("spanner_orm.admin.metadata.SpannerMetadata.model")
@@ -180,6 +183,7 @@ class UpdateTest(unittest.TestCase):
             " string_array ARRAY<STRING(MAX)>,"
             " string_array_2 ARRAY<STRING(50)>) PRIMARY KEY (int_, float_, string)"
         )
+
         self.assertEqual(test_update.ddl(), test_model_ddl)
 
     @mock.patch("spanner_orm.admin.metadata.SpannerMetadata.model")

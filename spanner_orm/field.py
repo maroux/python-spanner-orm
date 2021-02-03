@@ -186,6 +186,23 @@ class String(FieldType):
             raise error.ValidationError("{} is not of type str".format(value))
 
 
+class Bytes(FieldType):
+    """Represents a bytes type."""
+
+    @staticmethod
+    def ddl(size="MAX") -> str:
+        return "BYTES({size})".format(size=size)
+
+    @staticmethod
+    def grpc_type() -> type_pb2.Type:
+        return type_pb2.Type(code=type_pb2.BYTES)
+
+    @staticmethod
+    def validate_type(value) -> None:
+        if not isinstance(value, bytes):
+            raise error.ValidationError("{} is not of type bytes".format(value))
+
+
 class Date(FieldType):
     """Represents a date type."""
 
@@ -333,6 +350,7 @@ ALL_TYPES = [
     Integer,
     Float,
     String,
+    Bytes,
     Date,
     Timestamp,
     StringArray,

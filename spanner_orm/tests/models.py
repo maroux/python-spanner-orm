@@ -112,6 +112,8 @@ class UnittestModel(model.Model):
         field.Timestamp, nullable=True, allow_commit_timestamp=True
     )
     date = field.Field(field.Date, nullable=True)
+    bytes_ = field.Field(field.Bytes, nullable=True)
+    bytes_2 = field.Field(field.Bytes, nullable=True, size=2048)
     bool_array = field.Field(field.BoolArray, nullable=True)
     int_array = field.Field(field.IntegerArray, nullable=True)
     float_array = field.Field(field.FloatArray, nullable=True)
